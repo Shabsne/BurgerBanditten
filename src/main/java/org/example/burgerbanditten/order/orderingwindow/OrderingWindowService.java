@@ -1,4 +1,4 @@
-package org.example.burgerbanditten.order;
+package org.example.burgerbanditten.order.orderingwindow;
 
 import org.springframework.stereotype.Service;
 
