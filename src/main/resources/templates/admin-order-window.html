@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Bestillingsvindue</title>
+</head>
+<body>
+
+<h1>Bestillingsvindue</h1>
+
+<form method="post" action="/admin/order-window">
+
+    <label for="openTime">Åbner for online bestilling:</label>
+    <input type="time" id="openTime" name="openTime"
+           th:value="${orderingWindow.openTime}">
+
+    <br><br>
+
+    <label for="closeTime">Lukker for online bestilling:</label>
+    <input type="time" id="closeTime" name="closeTime"
+           th:value="${orderingWindow.closeTime}">
+
+    <br><br>
+
+    <label>
+        <input type="checkbox" name="active"
+               th:checked="${orderingWindow.active}">
+        Online bestilling aktiv
+    </label>
+
+    <br><br>
+
+    <button type="submit">Gem bestillingsvindue</button>
+
+</form>
+
+</body>
+</html>
