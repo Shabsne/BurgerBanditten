@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BurgerBanditten – Opret Konto</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #E8281E;
+      --red-hover: #C41F16;
+      --dark: #111010;
+      --card: #1A1918;
+      --border: #2E2C2B;
+      --border-focus: #E8281E;
+      --text: #F0EDE8;
+      --muted: #7A7673;
+      --input-bg: #242221;
+      --error: #FF5C5C;
+      --success: #4CAF7D;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--dark);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+              radial-gradient(circle at 15% 50%, rgba(232,40,30,0.08) 0%, transparent 50%),
+              radial-gradient(circle at 85% 20%, rgba(232,40,30,0.05) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    /* ─── KORT ─────────────────────────────────────── */
+    /* UX: Begrænset bredde (480px) sikrer at øjet ikke
+       skal bevæge sig langt – optimal linjelængde */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 480px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── LOGO & HEADER ─────────────────────────────── */
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .logo span { color: var(--red); }
+
+    /* UX: Klar hierarki – stor titel, lille subtitle
+       guider brugerens øje ned gennem siden */
+    .subtitle {
+      font-size: 0.82rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    /* ─── FORMULAR ──────────────────────────────────── */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    /* UX: Labels OVER felter (ikke placeholder-only).
+       Placeholders forsvinder når man skriver –
+       labels holder konteksten synlig hele tiden */
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    /* UX: Minimum 48px højde på inputs –
+       Fitts' Law: større mål = nemmere at ramme,
+       især på touchskærme */
+    input {
+      width: 100%;
+      height: 48px;
+      background: var(--input-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      padding: 0 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    /* UX: Tydelig fokusindikator – vigtig for
+       tilgængelighed (WCAG 2.1 krav) */
+    input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(232,40,30,0.15);
+    }
+
+    input.error {
+      border-color: var(--error);
+      box-shadow: 0 0 0 3px rgba(255,92,92,0.12);
+    }
+
+    input.success {
+      border-color: var(--success);
+    }
+
+    /* UX: Fejlbeskeder direkte under feltet –
+       nærhedsprincippet sikrer at brugeren
+       forbinder fejlen med det rigtige felt */
+    .error-msg {
+      font-size: 0.78rem;
+      color: var(--error);
+      margin-top: 0.4rem;
+      min-height: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .error-msg.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── ADGANGSKODE STYRKE ─────────────────────────── */
+    /* UX: Visuel feedback på adgangskodestyrke
+       hjælper brugeren forstå krav uden lang tekst */
+    .strength-bar {
+      display: flex;
+      gap: 4px;
+      margin-top: 0.5rem;
+    }
+
+    .strength-bar span {
+      flex: 1;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+
+    .strength-bar.weak span:nth-child(1)      { background: var(--error); }
+    .strength-bar.medium span:nth-child(-n+2) { background: #F5A623; }
+    .strength-bar.strong span                 { background: var(--success); }
+
+    .strength-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* ─── KNAP ──────────────────────────────────────── */
+    /* UX: Primær knap er fuld bredde og 52px høj –
+       tydeligt primær handling, nemt at ramme.
+       Placeret i bunden efter alle felter følger
+       naturligt flow (F-mønster scanning) */
+    .btn-primary {
+      width: 100%;
+      height: 52px;
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary:hover  { background: var(--red-hover); }
+    .btn-primary:active { transform: scale(0.99); }
+
+    /* UX: Loading state forhindrer dobbeltklik
+       og giver feedback om at noget sker */
+    .btn-primary.loading {
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .btn-primary.loading .spinner { display: block; }
+    .btn-primary.loading .btn-text { display: none; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ─── DIVIDER & LOGIN LINK ───────────────────────── */
+    .divider {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin: 1.25rem 0;
+      position: relative;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+
+    /* UX: Sekundær handling (login) er tekstlink –
+       tydelig visuel forskel fra primær knap
+       forhindrer forvirring om hvad der er vigtigst */
+    .login-link {
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .login-link a {
+      color: var(--red);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .login-link a:hover { text-decoration: underline; }
+
+    /* ─── SUCCESS BESKED ─────────────────────────────── */
+    .success-banner {
+      background: rgba(76,175,125,0.1);
+      border: 1px solid var(--success);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      color: var(--success);
+      font-size: 0.9rem;
+      display: none;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Logo -->
+  <div class="logo">Burger<span>Banditten</span></div>
+  <div class="subtitle">Opret din konto</div>
+
+  <!-- Success banner -->
+  <div class="success-banner" id="successBanner">
+    ✓ Konto oprettet! Tjek din email for bekræftelse.
+  </div>
+
+  <form id="registerForm" novalidate>
+
+    <!-- Navn -->
+    <div class="form-group">
+      <label for="name">Fuldt navn</label>
+      <input
+              type="text"
+              id="name"
+              placeholder="Eks. Anders Jensen"
+              autocomplete="name"
+      />
+      <div class="error-msg" id="nameError">Navn skal udfyldes</div>
+    </div>
+
+    <!-- Email -->
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input
+              type="email"
+              id="email"
+              placeholder="Eks. anders@email.dk"
+              autocomplete="email"
+      />
+      <div class="error-msg" id="emailError">Indtast en gyldig email</div>
+    </div>
+
+    <!-- Adgangskode -->
+    <div class="form-group">
+      <label for="password">Adgangskode</label>
+      <input
+              type="password"
+              id="password"
+              placeholder="Minimum 8 tegn"
+              autocomplete="new-password"
+      />
+      <!-- UX: Styrkeindikator giver løbende feedback -->
+      <div class="strength-bar" id="strengthBar">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="strength-label" id="strengthLabel"></div>
+      <div class="error-msg" id="passwordError">Adgangskode skal være mindst 8 tegn</div>
+    </div>
+
+    <!-- Bekræft adgangskode -->
+    <div class="form-group">
+      <label for="confirmPassword">Bekræft adgangskode</label>
+      <input
+              type="password"
+              id="confirmPassword"
+              placeholder="Gentag adgangskode"
+              autocomplete="new-password"
+      />
+      <div class="error-msg" id="confirmError">Adgangskoderne stemmer ikke overens</div>
+    </div>
+
+    <!-- Primær knap -->
+    <button type="submit" class="btn-primary" id="submitBtn">
+      <div class="spinner"></div>
+      <span class="btn-text">Opret konto</span>
+    </button>
+
+  </form>
+
+  <div class="divider">eller</div>
+
+  <!-- Sekundær handling -->
+  <div class="login-link">
+    Har du allerede en konto? <a href="/login">Log ind her</a>
+  </div>
+
+</div>
+
+<script>
+  const form = document.getElementById('registerForm');
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const confirmInput = document.getElementById('confirmPassword');
+  const submitBtn = document.getElementById('submitBtn');
+  const successBanner = document.getElementById('successBanner');
+
+  // ── Adgangskode styrke ──────────────────────────────
+  passwordInput.addEventListener('input', () => {
+    const val = passwordInput.value;
+    const bar = document.getElementById('strengthBar');
+    const label = document.getElementById('strengthLabel');
+
+    if (val.length === 0) {
+      bar.className = 'strength-bar';
+      label.textContent = '';
+      return;
+    }
+
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    if (score === 1) { bar.className = 'strength-bar weak';   label.textContent = 'Svag'; }
+    if (score === 2) { bar.className = 'strength-bar medium';  label.textContent = 'Medium'; }
+    if (score === 3) { bar.className = 'strength-bar strong';  label.textContent = 'Stærk'; }
+  });
+
+  // ── Hjælpefunktioner ────────────────────────────────
+  function setError(input, msgEl, message) {
+    input.classList.add('error');
+    input.classList.remove('success');
+    msgEl.textContent = message;
+    msgEl.classList.add('visible');
+  }
+
+  function setSuccess(input, msgEl) {
+    input.classList.remove('error');
+    input.classList.add('success');
+    msgEl.classList.remove('visible');
+  }
+
+  function clearState(input, msgEl) {
+    input.classList.remove('error', 'success');
+    msgEl.classList.remove('visible');
+  }
+
+  // ── Live validering (UX: feedback mens man skriver) ──
+  nameInput.addEventListener('blur', () => {
+    const nameError = document.getElementById('nameError');
+    if (nameInput.value.trim().length < 2) {
+      setError(nameInput, nameError, 'Navn skal udfyldes');
+    } else {
+      setSuccess(nameInput, nameError);
+    }
+  });
+
+  emailInput.addEventListener('blur', () => {
+    const emailError = document.getElementById('emailError');
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
+    if (!valid) {
+      setError(emailInput, emailError, 'Indtast en gyldig email');
+    } else {
+      setSuccess(emailInput, emailError);
+    }
+  });
+
+  confirmInput.addEventListener('blur', () => {
+    const confirmError = document.getElementById('confirmError');
+    if (confirmInput.value !== passwordInput.value) {
+      setError(confirmInput, confirmError, 'Adgangskoderne stemmer ikke overens');
+    } else {
+      setSuccess(confirmInput, confirmError);
+    }
+  });
+
+  // ── Indsendelse ─────────────────────────────────────
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nameError     = document.getElementById('nameError');
+    const emailError    = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const confirmError  = document.getElementById('confirmError');
+
+    let valid = true;
+
+    if (nameInput.value.trim().length < 2) {
+      setError(nameInput, nameError, 'Navn skal udfyldes'); valid = false;
+    }
+
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
+    if (!emailOk) {
+      setError(emailInput, emailError, 'Indtast en gyldig email'); valid = false;
+    }
+
+    if (passwordInput.value.length < 8) {
+      setError(passwordInput, passwordError, 'Adgangskode skal være mindst 8 tegn'); valid = false;
+    }
+
+    if (confirmInput.value !== passwordInput.value) {
+      setError(confirmInput, confirmError, 'Adgangskoderne stemmer ikke overens'); valid = false;
+    }
+
+    if (!valid) return;
+
+    // Loading state
+    submitBtn.classList.add('loading');
+
+    try {
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: nameInput.value.trim(),
+          mail: emailInput.value.trim(),
+          password: passwordInput.value
+        })
+      });
+
+      if (response.ok) {
+        // Vis success og nulstil form
+        successBanner.style.display = 'block';
+        form.reset();
+        [nameInput, emailInput, passwordInput, confirmInput].forEach(i => {
+          i.classList.remove('success', 'error');
+        });
+        document.getElementById('strengthBar').className = 'strength-bar';
+        document.getElementById('strengthLabel').textContent = '';
+      } else {
+        const msg = await response.text();
+        // Vis serverfejl under email feltet
+        setError(emailInput, emailError, msg);
+      }
+
+    } catch (err) {
+      setError(emailInput, emailError, 'Noget gik galt – prøv igen');
+    } finally {
+      submitBtn.classList.remove('loading');
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,8 +1,8 @@
-package order;
+package org.example.burgerbanditten.order;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import user.User;
+import org.example.burgerbanditten.user.User;
 
 
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package user;
+package org.example.burgerbanditten.user;
 
 public enum Role {
     Admin,

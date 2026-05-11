@@ -1,25 +1,25 @@
-package order;
+package org.example.burgerbanditten.cart;
 
-import Ingredient.Ingredient;
+import org.example.burgerbanditten.Ingredient.Ingredient;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import product.Product;
+import org.example.burgerbanditten.product.Product;
 
 
 import java.util.List;
 
 @Entity
-@Table(name = "order_items")
-public class OrderItem {
+@Table(name = "cart_items")
+public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "cart_id")
     @JsonBackReference
-    private Order order;
+    private Cart cart;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
@@ -27,39 +27,33 @@ public class OrderItem {
 
     private int quantity;
 
-    private double price;
-
     @ManyToMany
     @JoinTable(
-            name = "order_item_ingredients",
-            joinColumns = @JoinColumn(name = "order_item_id"),
+            name = "cart_item_ingredients",
+            joinColumns = @JoinColumn(name = "cart_item_id"),
             inverseJoinColumns = @JoinColumn(name = "ingredient_id")
     )
     private List<Ingredient> selectedIngredients;
 
-    public OrderItem() {}
+    public CartItem() {}
 
-    public OrderItem(Long id, Order order, Product product, int quantity, double price, List<Ingredient> selectedIngredients) {
+    public CartItem(Long id, Cart cart, Product product, int quantity, List<Ingredient> selectedIngredients) {
         this.id = id;
-        this.order = order;
+        this.cart = cart;
         this.product = product;
         this.quantity = quantity;
-        this.price = price;
         this.selectedIngredients = selectedIngredients;
     }
 
     public Long getId() { return id; }
-    public Order getOrder() { return order; }
+    public Cart getCart() { return cart; }
     public Product getProduct() { return product; }
     public int getQuantity() { return quantity; }
-    public double getPrice() { return price; }
     public List<Ingredient> getSelectedIngredients() { return selectedIngredients; }
 
     public void setId(Long id) { this.id = id; }
-    public void setOrder(Order order) { this.order = order; }
+    public void setCart(Cart cart) { this.cart = cart; }
     public void setProduct(Product product) { this.product = product; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
-    public void setPrice(double price) { this.price = price; }
     public void setSelectedIngredients(List<Ingredient> selectedIngredients) { this.selectedIngredients = selectedIngredients; }
 }
-

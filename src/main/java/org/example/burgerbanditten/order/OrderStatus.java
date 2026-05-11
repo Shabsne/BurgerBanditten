@@ -1,4 +1,4 @@
-package order;
+package org.example.burgerbanditten.order;
 
 public enum OrderStatus {
     PENDING,
