@@ -2,7 +2,10 @@ package org.example.burgerbanditten.order.orderingwindow;
 
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 public class OrderingWindowService {
@@ -13,15 +16,23 @@ public class OrderingWindowService {
         this.orderingWindowRepository = orderingWindowRepository;
     }
 
-    public OrderingWindow getOrderingWindow() {
-        return orderingWindowRepository.findById(1L)
+    public OrderingWindow getOrderingWindowForToday() {
+        DayOfWeek today = LocalDate.now().getDayOfWeek();
+
+        return orderingWindowRepository.findByDayOfWeek(today)
                 .orElseGet(() -> orderingWindowRepository.save(
-                        new OrderingWindow(LocalTime.of(16, 0), LocalTime.of(21, 0), true)
+                        new OrderingWindow(today, LocalTime.of(12, 0), LocalTime.of(22, 0), true)
                 ));
     }
 
-    public OrderingWindow updateOrderingWindow(LocalTime openTime, LocalTime closeTime, boolean active) {
-        OrderingWindow orderingWindow = getOrderingWindow();
+    public OrderingWindow updateOrderingWindow(
+            DayOfWeek day,
+            LocalTime openTime,
+            LocalTime closeTime,
+            boolean active
+    ) {
+        OrderingWindow orderingWindow = orderingWindowRepository.findByDayOfWeek(day)
+                        .orElseGet(() -> orderingWindowRepository.save(createDefaultWindow(day)));
 
         orderingWindow.setOpenTime(openTime);
         orderingWindow.setCloseTime(closeTime);
@@ -30,10 +41,30 @@ public class OrderingWindowService {
         return orderingWindowRepository.save(orderingWindow);
     }
 
-    public boolean isOrderingOpen() {
-        OrderingWindow orderingWindow = getOrderingWindow();
+    public List<OrderingWindow> getWeeklySchedule() {
+        for (DayOfWeek day : DayOfWeek.values()) {
+            orderingWindowRepository.findByDayOfWeek(day)
+                    .orElseGet(() -> orderingWindowRepository.save(createDefaultWindow(day)));
+        }
+        return orderingWindowRepository.findAll();
+    }
 
-        if (!orderingWindow.isActive()) {
+    private OrderingWindow createDefaultWindow(DayOfWeek day) {
+        if (day == DayOfWeek.FRIDAY || day == DayOfWeek.SATURDAY) {
+            return new OrderingWindow(day, LocalTime.of(12, 0), LocalTime.of(23, 0), true);
+        }
+        return new OrderingWindow(day, LocalTime.of(12, 0), LocalTime.of(22, 0), true);
+    }
+
+    public boolean isOrderingOpen() {
+
+        DayOfWeek today = LocalDate.now().getDayOfWeek();
+
+        OrderingWindow orderingWindow =
+                orderingWindowRepository.findByDayOfWeek(today)
+                        .orElse(null);
+
+        if (orderingWindow == null || !orderingWindow.isActive()) {
             return false;
         }
 

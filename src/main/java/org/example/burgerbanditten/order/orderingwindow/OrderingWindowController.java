@@ -4,6 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 @Controller
@@ -18,17 +19,19 @@ public class OrderingWindowController {
 
     @GetMapping
     public String showOrderingWindowPage(Model model) {
-        model.addAttribute("orderingWindow", orderingWindowService.getOrderingWindow());
+        model.addAttribute("weeklySchedule", orderingWindowService.getWeeklySchedule());
         return "admin-order-window";
     }
 
     @PostMapping
     public String updateOrderingWindow(
+            @RequestParam DayOfWeek dayOfWeek,
             @RequestParam String openTime,
             @RequestParam String closeTime,
             @RequestParam(required = false) boolean active
     ) {
         orderingWindowService.updateOrderingWindow(
+                dayOfWeek,
                 LocalTime.parse(openTime),
                 LocalTime.parse(closeTime),
                 active

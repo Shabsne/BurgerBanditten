@@ -8,31 +8,38 @@
 
 <h1>Bestillingsvindue</h1>
 
-<form method="post" action="/admin/order-window">
+<table>
+    <tr>
+        <th>Dag</th>
+        <th>Åbner</th>
+        <th>Lukker</th>
+        <th>Aktiv</th>
+        <th>Gem</th>
+    </tr>
 
-    <label for="openTime">Åbner for online bestilling:</label>
-    <input type="time" id="openTime" name="openTime"
-           th:value="${orderingWindow.openTime}">
+    <tr th:each="window : ${weeklySchedule}">
+        <form method="post" action="/admin/order-window">
+            <td th:text="${window.dayOfWeek}"></td>
 
-    <br><br>
+            <td>
+                <input type="time" name="openTime" th:value="${window.openTime}">
+            </td>
 
-    <label for="closeTime">Lukker for online bestilling:</label>
-    <input type="time" id="closeTime" name="closeTime"
-           th:value="${orderingWindow.closeTime}">
+            <td>
+                <input type="time" name="closeTime" th:value="${window.closeTime}">
+            </td>
 
-    <br><br>
+            <td>
+                <input type="checkbox" name="active" th:checked="${window.active}">
+            </td>
 
-    <label>
-        <input type="checkbox" name="active"
-               th:checked="${orderingWindow.active}">
-        Online bestilling aktiv
-    </label>
-
-    <br><br>
-
-    <button type="submit">Gem bestillingsvindue</button>
-
-</form>
+            <td>
+                <input type="hidden" name="dayOfWeek" th:value="${window.dayOfWeek}">
+                <button type="submit">Gem</button>
+            </td>
+        </form>
+    </tr>
+</table>
 
 </body>
 </html>

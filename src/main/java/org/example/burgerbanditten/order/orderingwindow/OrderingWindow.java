@@ -1,6 +1,8 @@
 package org.example.burgerbanditten.order.orderingwindow;
 
 import jakarta.persistence.*;
+
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 @Entity
@@ -10,14 +12,23 @@ public class OrderingWindow {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    private DayOfWeek dayOfWeek;
+
     private LocalTime openTime;
     private LocalTime closeTime;
+
     private boolean active;
 
     public OrderingWindow() {
     }
 
-    public OrderingWindow(LocalTime openTime, LocalTime closeTime, boolean active) {
+    public OrderingWindow(DayOfWeek dayOfWeek,
+                          LocalTime openTime,
+                          LocalTime closeTime,
+                          boolean active) {
+
+        this.dayOfWeek = dayOfWeek;
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.active = active;
@@ -25,6 +36,14 @@ public class OrderingWindow {
 
     public Long getId() {
         return id;
+    }
+
+    public DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
     }
 
     public LocalTime getOpenTime() {
