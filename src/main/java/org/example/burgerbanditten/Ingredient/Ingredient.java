@@ -1,4 +1,4 @@
-package Ingredient;
+package org.example.burgerbanditten.Ingredient;
 
 import jakarta.persistence.*;
 

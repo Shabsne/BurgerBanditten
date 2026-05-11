@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# For security purposes (App.properties cannot upload to github)
+src/main/resources/application.properties
