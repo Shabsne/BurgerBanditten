@@ -20,7 +20,16 @@ public class OpeningHoursController {
 
     @GetMapping
     public String showOpeningHoursPage(Model model) {
-        model.addAttribute("weeklySchedule", openingHoursService.getWeeklySchedule());
+        model.addAttribute(
+                "weeklySchedule",
+                openingHoursService.getWeeklySchedule()
+        );
+
+        model.addAttribute(
+                "holidayOpeningHours",
+                openingHoursService.getAllHolidayOpeningHours()
+        );
+
         return "admin-opening-hours";
     }
 

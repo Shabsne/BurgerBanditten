@@ -90,6 +90,10 @@ public class OpeningHoursService {
                 && !currentTime.isAfter(openingHours.getCloseTime());
     }
 
+    public List<HolidayOpeningHours> getAllHolidayOpeningHours() {
+        return holidayOpeningHoursRepository.findAll();
+    }
+
     public HolidayOpeningHours addHolidayOpeningHours(
             String description,
             LocalDate date,
