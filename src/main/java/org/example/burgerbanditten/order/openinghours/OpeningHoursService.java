@@ -94,19 +94,10 @@ public class OpeningHoursService {
         LocalDate currentDate = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
 
-        if (!isOrderingOpen()) {
-            OpeningHours todayOpeningHours = openingHoursRepository
-                    .findByDayOfWeek(currentDate.getDayOfWeek())
-                    .orElse(null);
-
-            return new NextOpeningDto(
-                    true,
-                    currentDate,
-                    currentTime,
-                    todayOpeningHours != null ? todayOpeningHours.getCloseTime() : null, "Online bestilling er åben nu"
-
-            );
+        if (isOrderingOpen()) {
+            return new NextOpeningDto(true, currentDate, null, null, null);
         }
+
         for (int i = 0; i < 14; i++) {
             LocalDate dateToCheck = currentDate.plusDays(i);
 
@@ -115,9 +106,13 @@ public class OpeningHoursService {
             if (holiday.isPresent()) {
                 HolidayOpeningHours h = holiday.get();
 
-                if (h.isActive() && dateToCheck.atTime(h.getOpenTime()).isAfter(LocalDate.now().atTime(currentTime))) {
-                    return new NextOpeningDto(false, dateToCheck, h.getOpenTime(), h.getCloseTime(),
-                            "Butikken åbner " + dateToCheck + " kl. " + h.getOpenTime());
+                if (h.isActive() && dateToCheck.atTime(h.getOpenTime()).isAfter(currentDate.atTime(currentTime))) {
+                    return new NextOpeningDto(
+                            false,
+                            dateToCheck,
+                            h.getOpenTime(),
+                            h.getCloseTime(),
+                            "Burger Banditten åbner " + dateToCheck + " kl. " + h.getOpenTime());
                 }
             } else {
                 OpeningHours weekly = openingHoursRepository
