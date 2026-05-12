@@ -127,6 +127,11 @@ public class OpeningHoursService {
                 if (weekly != null && weekly.isActive()) {
                     boolean isTodayButAlreadyClosed =
                             dateToCheck.equals(currentDate) && currentTime.isAfter(weekly.getCloseTime());
+
+                    if (!isTodayButAlreadyClosed) {
+                        return new NextOpeningDto(false, dateToCheck, weekly.getOpenTime(), weekly.getCloseTime(),
+                        "Burger Banditten åbner " + dateToCheck + " kl. " + weekly.getOpenTime());
+                    }
                 }
             }
         }

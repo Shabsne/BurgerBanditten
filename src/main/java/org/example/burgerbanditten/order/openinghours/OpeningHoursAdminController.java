@@ -10,11 +10,11 @@ import java.time.LocalTime;
 
 @Controller
 @RequestMapping("/admin/opening-hours")
-public class OpeningHoursController {
+public class OpeningHoursAdminController {
 
     private final OpeningHoursService openingHoursService;
 
-    public OpeningHoursController(OpeningHoursService openingHoursService) {
+    public OpeningHoursAdminController(OpeningHoursService openingHoursService) {
         this.openingHoursService = openingHoursService;
     }
 
