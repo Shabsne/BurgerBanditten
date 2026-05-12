@@ -5,10 +5,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Controller
-@RequestMapping("/admin/order-window")
+@RequestMapping("/admin/opening-hours")
 public class OpeningHoursController {
 
     private final OpeningHoursService openingHoursService;
@@ -18,9 +19,9 @@ public class OpeningHoursController {
     }
 
     @GetMapping
-    public String showOrderingWindowPage(Model model) {
+    public String showOpeningHoursPage(Model model) {
         model.addAttribute("weeklySchedule", openingHoursService.getWeeklySchedule());
-        return "admin-order-window";
+        return "admin-opening-hours";
     }
 
     @PostMapping("/api")
@@ -38,5 +39,24 @@ public class OpeningHoursController {
                 LocalTime.parse(closeTime),
                 active
         );
+    }
+
+    @PostMapping("/holiday")
+    public String addHolidayOpeningHours(
+            @RequestParam String description,
+            @RequestParam String date,
+            @RequestParam String openTime,
+            @RequestParam String closeTime,
+            @RequestParam(required = false) boolean active
+    ) {
+        openingHoursService.addHolidayOpeningHours(
+                description,
+                LocalDate.parse(date),
+                LocalTime.parse(openTime),
+                LocalTime.parse(closeTime),
+                active
+        );
+
+        return "redirect:/admin/opening-hours";
     }
 }

@@ -56,5 +56,30 @@
     </tr>
 </table>
 
+<h2>Helligdage</h2>
+
+<form method="post" action="/admin/order-window/holiday">
+
+    <label for="holidayName">Navn:</label>
+    <input type="text" id="holidayName" name="description" placeholder="Fx Nytårsaften">
+
+    <label for="holidayDate">Dato:</label>
+    <input type="date" id="holidayDate" name="date">
+
+    <label for="holidayOpenTime">Åbner:</label>
+    <input type="time" id="holidayOpenTime" name="openTime">
+
+    <label for="holidayCloseTime">Lukker:</label>
+    <input type="time" id="holidayCloseTime" name="closeTime">
+
+    <label>
+        <input type="checkbox" name="active" checked>
+        Aktiv
+    </label>
+
+    <button type="submit">Tilføj helligdag</button>
+
+</form>
+
 </body>
 </html>

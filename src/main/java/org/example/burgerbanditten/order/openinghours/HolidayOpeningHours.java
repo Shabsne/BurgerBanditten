@@ -20,11 +20,25 @@ public class HolidayOpeningHours {
     private LocalTime openTime;
     private LocalTime closeTime;
 
-    private boolean Active;
+    private boolean active;
 
     private String description;
 
     public HolidayOpeningHours() {
+    }
+
+    public HolidayOpeningHours(
+            String description,
+            LocalDate date,
+            LocalTime openTime,
+            LocalTime closeTime,
+            boolean active
+    ) {
+        this.description = description;
+        this.date = date;
+        this.openTime = openTime;
+        this.closeTime = closeTime;
+        this.active = active;
     }
 
     public Long getId() {
@@ -60,11 +74,11 @@ public class HolidayOpeningHours {
     }
 
     public boolean isActive() {
-        return Active;
+        return active;
     }
 
     public void setActive(boolean active) {
-        Active = active;
+        this.active = active;
     }
 
     public String getDescription() {

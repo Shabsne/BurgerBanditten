@@ -89,4 +89,17 @@ public class OpeningHoursService {
         return !currentTime.isBefore(openingHours.getOpenTime())
                 && !currentTime.isAfter(openingHours.getCloseTime());
     }
+
+    public HolidayOpeningHours addHolidayOpeningHours(
+            String description,
+            LocalDate date,
+            LocalTime openTime,
+            LocalTime closeTime,
+            boolean active
+    ) {
+        HolidayOpeningHours holidayOpeningHours =
+                new HolidayOpeningHours(description, date, openTime, closeTime, active);
+
+        return holidayOpeningHoursRepository.save(holidayOpeningHours);
+    }
 }
