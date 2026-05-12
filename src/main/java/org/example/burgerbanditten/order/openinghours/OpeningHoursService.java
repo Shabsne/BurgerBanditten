@@ -90,6 +90,49 @@ public class OpeningHoursService {
                 && !currentTime.isAfter(openingHours.getCloseTime());
     }
 
+    public NextOpeningDto getNextOpening() {
+        LocalDate currentDate = LocalDate.now();
+        LocalTime currentTime = LocalTime.now();
+
+        if (!isOrderingOpen()) {
+            OpeningHours todayOpeningHours = openingHoursRepository
+                    .findByDayOfWeek(currentDate.getDayOfWeek())
+                    .orElse(null);
+
+            return new NextOpeningDto(
+                    true,
+                    currentDate,
+                    currentTime,
+                    todayOpeningHours != null ? todayOpeningHours.getCloseTime() : null, "Online bestilling er åben nu"
+
+            );
+        }
+        for (int i = 0; i < 14; i++) {
+            LocalDate dateToCheck = currentDate.plusDays(i);
+
+            Optional<HolidayOpeningHours> holiday = holidayOpeningHoursRepository.findByDate(dateToCheck);
+
+            if (holiday.isPresent()) {
+                HolidayOpeningHours h = holiday.get();
+
+                if (h.isActive() && dateToCheck.atTime(h.getOpenTime()).isAfter(LocalDate.now().atTime(currentTime))) {
+                    return new NextOpeningDto(false, dateToCheck, h.getOpenTime(), h.getCloseTime(),
+                            "Butikken åbner " + dateToCheck + " kl. " + h.getOpenTime());
+                }
+            } else {
+                OpeningHours weekly = openingHoursRepository
+                        .findByDayOfWeek(dateToCheck.getDayOfWeek())
+                        .orElse(null);
+
+                if (weekly != null && weekly.isActive()) {
+                    boolean isTodayButAlreadyClosed =
+                            dateToCheck.equals(currentDate) && currentTime.isAfter(weekly.getCloseTime());
+                }
+            }
+        }
+        return new NextOpeningDto(false, null, null, null, "Der er ingen kommende åbningstider registreret");
+    }
+
     public List<HolidayOpeningHours> getAllHolidayOpeningHours() {
         return holidayOpeningHoursRepository.findAll();
     }
