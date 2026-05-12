@@ -18,26 +18,41 @@
     </tr>
 
     <tr th:each="window : ${weeklySchedule}">
-        <form method="post" action="/admin/order-window">
-            <td th:text="${window.dayOfWeek}"></td>
 
-            <td>
-                <input type="time" name="openTime" th:value="${window.openTime}">
-            </td>
+        <td th:text="${window.dayOfWeek}"></td>
 
-            <td>
-                <input type="time" name="closeTime" th:value="${window.closeTime}">
-            </td>
+        <td>
+            <input
+                    class="openTime"
+                    type="time"
+                    th:value="${window.openTime}">
+        </td>
+        <td>
+            <input
+                    class="closeTime"
+                    type="time"
+                    th:value="${window.closeTime}">
+        </td>
+        <td>
+            <input
+                    class="active"
+                    type="checkbox"
+                    th:checked="${window.active}">
+        </td>
+        <td>
+            <input
+                    class="dayOfWeek"
+                    type="hidden"
+                    th:value="${window.dayOfWeek}">
 
-            <td>
-                <input type="checkbox" name="active" th:checked="${window.active}">
-            </td>
+            <button
+                    type="button"
+                    class="save-window-button">
 
-            <td>
-                <input type="hidden" name="dayOfWeek" th:value="${window.dayOfWeek}">
-                <button type="submit">Gem</button>
-            </td>
-        </form>
+                Gem
+
+            </button>
+        </td>
     </tr>
 </table>
 
