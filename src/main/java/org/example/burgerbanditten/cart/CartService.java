@@ -21,7 +21,6 @@ public class CartService {
     }
 
     public Cart addProductToCart(Long cartId, Long productId, int quantity) {
-
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow();
 
@@ -33,8 +32,13 @@ public class CartService {
         item.setProduct(product);
         item.setQuantity(quantity);
 
+        // VIGTIG TILFØJELSE:
+        cart.getCartItems().add(item);
+
         cartItemRepository.save(item);
 
+        // Valgfrit: Nogle vælger også at gemme cart igen,
+        // men cartItemRepository.save(item) er vigtigst for databasen.
         return cart;
     }
 }
