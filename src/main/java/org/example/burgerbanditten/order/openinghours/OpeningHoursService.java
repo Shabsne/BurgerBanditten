@@ -102,4 +102,8 @@ public class OpeningHoursService {
 
         return holidayOpeningHoursRepository.save(holidayOpeningHours);
     }
+
+    public void deleteHolidayOpeningHours(Long id) {
+        holidayOpeningHoursRepository.deleteById(id);
+    }
 }

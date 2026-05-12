@@ -59,4 +59,11 @@ public class OpeningHoursController {
 
         return "redirect:/admin/opening-hours";
     }
+
+    @PostMapping("/holiday/delete")
+    public String deleteHolidayOpeningHours(@RequestParam Long id) {
+        openingHoursService.deleteHolidayOpeningHours(id);
+
+        return "redirect:/admin/opening-hours";
+    }
 }

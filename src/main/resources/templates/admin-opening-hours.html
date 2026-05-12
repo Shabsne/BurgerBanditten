@@ -81,5 +81,54 @@
 
 </form>
 
+<hr>
+
+<h3>Oprettede helligdage</h3>
+
+<table>
+
+    <tr>
+        <th>Navn</th>
+        <th>Dato</th>
+        <th>Åbner</th>
+        <th>Lukker</th>
+        <th>Aktiv</th>
+        <th>Slet</th>
+    </tr>
+
+    <tr th:each="holiday : ${holidayOpeningHours}">
+
+        <td th:text="${holiday.description}"></td>
+
+        <td th:text="${holiday.date}"></td>
+
+        <td th:text="${holiday.openTime}"></td>
+
+        <td th:text="${holiday.closeTime}"></td>
+
+        <td th:text="${holiday.active}"></td>
+
+        <td>
+
+            <form method="post"
+                  action="/admin/order-window/holiday/delete">
+
+                <input
+                        type="hidden"
+                        name="id"
+                        th:value="${holiday.id}">
+
+                <button type="submit">
+                    Slet
+                </button>
+
+            </form>
+
+        </td>
+
+    </tr>
+
+</table>
+
 </body>
 </html>
