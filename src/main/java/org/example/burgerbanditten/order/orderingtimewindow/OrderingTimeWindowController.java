@@ -1,4 +1,4 @@
-package org.example.burgerbanditten.order.orderingwindow;
+package org.example.burgerbanditten.order.orderingtimewindow;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,30 +9,30 @@ import java.time.LocalTime;
 
 @Controller
 @RequestMapping("/admin/order-window")
-public class OrderingWindowController {
+public class OrderingTimeWindowController {
 
-    private final OrderingWindowService orderingWindowService;
+    private final OrderingTimeWindowService orderingTimeWindowService;
 
-    public OrderingWindowController(OrderingWindowService orderingWindowService) {
-        this.orderingWindowService = orderingWindowService;
+    public OrderingTimeWindowController(OrderingTimeWindowService orderingTimeWindowService) {
+        this.orderingTimeWindowService = orderingTimeWindowService;
     }
 
     @GetMapping
     public String showOrderingWindowPage(Model model) {
-        model.addAttribute("weeklySchedule", orderingWindowService.getWeeklySchedule());
+        model.addAttribute("weeklySchedule", orderingTimeWindowService.getWeeklySchedule());
         return "admin-order-window";
     }
 
     @PostMapping("/api")
     @ResponseBody
-    public OrderingWindow updateOrderingWindowApi(
+    public OrderingTimeWindow updateOrderingWindowApi(
             @RequestParam DayOfWeek dayOfWeek,
             @RequestParam String openTime,
             @RequestParam String closeTime,
             @RequestParam(required = false) boolean active
     ) {
 
-        return orderingWindowService.updateOrderingWindow(
+        return orderingTimeWindowService.updateOrderingWindow(
                 dayOfWeek,
                 LocalTime.parse(openTime),
                 LocalTime.parse(closeTime),
