@@ -1,5 +1,7 @@
 package org.example.burgerbanditten.product;
 
+import org.example.burgerbanditten.Ingredient.Ingredient;
+
 import java.util.List;
 
 public record ProductDetailsDTO(Long id,
@@ -7,7 +9,6 @@ public record ProductDetailsDTO(Long id,
                                 String description,
                                 Double price,
                                 Boolean lunchOffer,
-                                Size size,
                                 Category category,
                                 List<String> ingredients) {
 }

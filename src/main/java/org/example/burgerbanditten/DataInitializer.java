@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.example.burgerbanditten.product.Category;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
-import org.example.burgerbanditten.product.Size;
 
 import java.util.List;
 
@@ -51,7 +50,6 @@ public class DataInitializer implements CommandLineRunner {
                 "Burger with cheese",
                 79.0,
                 true,
-                Size.MEDIUM,
                 Category.BURGER,
                 List.of(cheese, bacon)
         );

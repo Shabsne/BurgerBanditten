@@ -23,7 +23,6 @@ public class ProductMapper {
                 product.getDescription(),
                 product.getPrice(),
                 product.getLunchOffer(),
-                product.getSize(),
                 product.getCategory(),
                 product.getIngredients()
                         .stream()
