@@ -46,6 +46,13 @@ import org.springframework.security.web.SecurityFilterChain;
                                     "/js/**"
                             ).permitAll()
 
+                            .requestMatchers(HttpMethod.GET,
+                                    "/menu",
+                                    "/product/**",
+                                    "/categories",
+                                    "/ingredients")
+                            .permitAll()
+
                             // Alle kan registrere og logge ind
                             .requestMatchers(
                                     "/api/users/register",
