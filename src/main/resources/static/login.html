@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BurgerBanditten – Log ind</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Side-specifik styling */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card { max-width: 440px; }
+
+    .forgot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .forgot-link {
+      font-size: 0.78rem;
+      color: var(--red);
+      cursor: pointer;
+    }
+
+    .forgot-link:hover { text-decoration: underline; }
+
+    .register-link {
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 1.25rem;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-overlay.visible { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .modal h2 { font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem; }
+    .modal p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem; }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      float: right;
+      margin-top: -0.5rem;
+    }
+
+    .success-msg {
+      font-size: 0.85rem;
+      color: var(--success);
+      margin-top: 0.5rem;
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-glow">
+
+<div class="card fade-up">
+  <div class="logo">Burger<span>Banditten</span></div>
+  <div class="subtitle">Log ind på din konto</div>
+
+  <form id="loginForm" novalidate>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Eks. anders@email.dk" autocomplete="email"/>
+      <div class="error-msg" id="emailError"></div>
+    </div>
+
+    <div class="form-group">
+      <div class="forgot-row">
+        <label for="password" style="margin-bottom:0">Adgangskode</label>
+        <a class="forgot-link" onclick="openForgotModal()">Glemt adgangskode?</a>
+      </div>
+      <input type="password" id="password" placeholder="Din adgangskode" autocomplete="current-password"/>
+      <div class="error-msg" id="passwordError"></div>
+    </div>
+
+    <button type="submit" class="btn-primary" id="submitBtn">
+      <div class="spinner"></div>
+      <span class="btn-text">Log ind</span>
+    </button>
+
+  </form>
+
+  <div class="divider">eller</div>
+
+  <button class="btn-secondary" onclick="window.location.href='/menu.html'">
+    Fortsæt som gæst
+  </button>
+
+  <div class="register-link">
+    Har du ikke en konto? <a href="/register.html">Opret konto her</a>
+  </div>
+</div>
+
+<!-- Glemt adgangskode modal -->
+<div class="modal-overlay" id="forgotModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeForgotModal()">&#x2715;</button>
+    <h2>Glemt adgangskode?</h2>
+    <p>Indtast din email – vi sender dig et link til at nulstille din adgangskode.</p>
+    <div class="form-group">
+      <label for="forgotEmail">Email</label>
+      <input type="email" id="forgotEmail" placeholder="Din email"/>
+      <div class="error-msg" id="forgotEmailError"></div>
+    </div>
+    <button class="btn-primary" onclick="sendResetLink()">
+      <span class="btn-text">Send nulstillingslink</span>
+    </button>
+    <div class="success-msg" id="forgotSuccess">
+      ✓ Tjek din email for et nulstillingslink!
+    </div>
+  </div>
+</div>
+
+<script>
+  const form         = document.getElementById('loginForm');
+  const emailInput   = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const submitBtn    = document.getElementById('submitBtn');
+
+  function setError(input, msgEl, message) {
+    input.classList.add('error');
+    msgEl.textContent = message;
+    msgEl.classList.add('visible');
+  }
+
+  function clearError(input, msgEl) {
+    input.classList.remove('error');
+    msgEl.classList.remove('visible');
+  }
+
+  emailInput.addEventListener('blur', () => {
+    const el = document.getElementById('emailError');
+    if (!emailInput.value.trim()) setError(emailInput, el, 'Email må ikke være tom');
+    else clearError(emailInput, el);
+  });
+
+  passwordInput.addEventListener('blur', () => {
+    const el = document.getElementById('passwordError');
+    if (!passwordInput.value.trim()) setError(passwordInput, el, 'Adgangskode må ikke være tom');
+    else clearError(passwordInput, el);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const emailError    = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    let valid = true;
+
+    if (!emailInput.value.trim())    { setError(emailInput, emailError, 'Email må ikke være tom'); valid = false; }
+    if (!passwordInput.value.trim()) { setError(passwordInput, passwordError, 'Adgangskode må ikke være tom'); valid = false; }
+    if (!valid) return;
+
+    submitBtn.classList.add('loading');
+    try {
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mail: emailInput.value.trim(), password: passwordInput.value })
+      });
+      if (response.ok) {
+        window.location.href = '/menu.html';
+      } else {
+        const msg = await response.text();
+        setError(emailInput, emailError, msg);
+        setError(passwordInput, passwordError, ' ');
+      }
+    } catch (err) {
+      setError(emailInput, emailError, 'Noget gik galt – prøv igen');
+    } finally {
+      submitBtn.classList.remove('loading');
+    }
+  });
+
+  function openForgotModal() { document.getElementById('forgotModal').classList.add('visible'); }
+
+  function closeForgotModal() {
+    document.getElementById('forgotModal').classList.remove('visible');
+    document.getElementById('forgotSuccess').style.display = 'none';
+    document.getElementById('forgotEmail').value = '';
+  }
+
+  async function sendResetLink() {
+    const forgotEmail      = document.getElementById('forgotEmail');
+    const forgotEmailError = document.getElementById('forgotEmailError');
+    const forgotSuccess    = document.getElementById('forgotSuccess');
+
+    if (!forgotEmail.value.trim()) { setError(forgotEmail, forgotEmailError, 'Email må ikke være tom'); return; }
+
+    try {
+      const response = await fetch('/api/users/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mail: forgotEmail.value.trim() })
+      });
+      if (response.ok) {
+        forgotSuccess.style.display = 'block';
+        forgotEmailError.classList.remove('visible');
+      } else {
+        const msg = await response.text();
+        setError(forgotEmail, forgotEmailError, msg);
+      }
+    } catch (err) {
+      setError(forgotEmail, forgotEmailError, 'Noget gik galt – prøv igen');
+    }
+  }
+</script>
+
+</body>
+</html>
