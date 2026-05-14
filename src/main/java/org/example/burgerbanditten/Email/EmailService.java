@@ -70,7 +70,7 @@ public class EmailService {
         }
     }
 
-    // Send ordre-bekræftelse (#send notifikation til kunde)
+    // Send ordre-bekræftelse ved oprettelse
     public void sendOrderConfirmation(String toEmail, String name, Long orderId) {
         try {
             String subject = "Din ordre er modtaget – BurgerBanditten";
@@ -83,10 +83,19 @@ public class EmailService {
             throw new RuntimeException("Kunne ikke sende bekræftelse på din ordre", e);
         }
     }
+
+    // Send notifikation til kunden når admin accepterer ordren (#124 / #125)
+    public void sendOrderAcceptedNotification(String toEmail, String name, Long orderId) {
+        try {
+            String subject = "Din ordre er accepteret – BurgerBanditten";
+            String body = "Hej " + name + "!\n\n"
+                    + "Godt nyt! Din ordre #" + orderId + " er blevet accepteret.\n"
+                    + "Vi er i gang med at klargøre den til dig.\n\n"
+                    + "Vi ses snart!\n"
+                    + "Mange hilsner,\nBurgerBanditten";
+            sendEmail(toEmail, subject, body);
+        } catch (IOException e) {
+            throw new RuntimeException("Kunne ikke sende acceptnotifikation", e);
+        }
+    }
 }
-
-
-
-
-
-
