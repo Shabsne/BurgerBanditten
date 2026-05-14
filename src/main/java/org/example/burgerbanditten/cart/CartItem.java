@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.cart;
 
-import org.example.burgerbanditten.Ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.Ingredient;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.example.burgerbanditten.product.Product;

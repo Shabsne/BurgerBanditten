@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.User;
 
-import org.example.burgerbanditten.Email.EmailService;
+import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.user.Role;
 import org.example.burgerbanditten.user.User;
 import org.example.burgerbanditten.user.UserRepository;

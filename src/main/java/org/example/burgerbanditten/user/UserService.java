@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.user;
 
-import org.example.burgerbanditten.Email.EmailService;
+import org.example.burgerbanditten.email.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

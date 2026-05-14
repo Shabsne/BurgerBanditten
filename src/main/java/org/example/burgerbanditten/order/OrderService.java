@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.order;
 
-import org.example.burgerbanditten.Email.EmailService;
+import org.example.burgerbanditten.email.EmailService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
