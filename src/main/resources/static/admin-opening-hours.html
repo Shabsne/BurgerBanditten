@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>Bestillingsvindue</title>
+</head>
+<body>
+
+<h1>Bestillingsvindue</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>Dag</th>
+        <th>Åbner</th>
+        <th>Lukker</th>
+        <th>Aktiv</th>
+        <th>Gem</th>
+    </tr>
+    </thead>
+    <tbody id="weeklyScheduleTableBody"></tbody>
+</table>
+
+<h2>Helligdage</h2>
+
+<div>
+    <input type="text" id="holidayName" placeholder="Fx Nytårsaften">
+    <input type="date" id="holidayDate">
+    <input type="time" id="holidayOpenTime">
+    <input type="time" id="holidayCloseTime">
+
+    <label>
+        <input type="checkbox" id="holidayActive" checked>
+        Aktiv
+    </label>
+
+    <button type="button" id="addHolidayButton">
+        Tilføj helligdag
+    </button>
+</div>
+
+<hr>
+
+<h3>Oprettede helligdage</h3>
+
+<table>
+    <thead>
+    <tr>
+        <th>Navn</th>
+        <th>Dato</th>
+        <th>Åbner</th>
+        <th>Lukker</th>
+        <th>Aktiv</th>
+        <th>Slet</th>
+    </tr>
+    </thead>
+    <tbody id="holidayTableBody"></tbody>
+</table>
+
+<script src="/js/admin-opening-hours.js"></script>
+
+</body>
+</html>

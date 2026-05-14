@@ -102,7 +102,7 @@ public class UserServiceTest {
     // ── Gyldig oprettelse ────────────────────────────────
 
     @Test
-    void skalOpretteUser_årAlleOplysningerErGyldige() {
+    void skalOpretteUser_NårAlleOplysningerErGyldige() {
         when(userRepository.existsByMail("anders@gmail.com")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(validUser);
 

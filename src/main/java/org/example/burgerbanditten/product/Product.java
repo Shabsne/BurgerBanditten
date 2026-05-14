@@ -4,6 +4,7 @@ import org.example.burgerbanditten.Ingredient.Ingredient;
 import jakarta.persistence.*;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,8 +23,6 @@ public class Product {
 
     private Boolean lunchOffer;
 
-    @Enumerated(EnumType.STRING)
-    private Size size;
 
     @Enumerated(EnumType.STRING)
     private Category category;
@@ -34,17 +33,16 @@ public class Product {
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "ingredient_id")
     )
-    private List<Ingredient> ingredients;
+    private List<Ingredient> ingredients = new ArrayList<>();
 
     public Product() {}
 
-    public Product(Long id, String name, String description, Double price, Boolean lunchOffer, Size size, Category category, List<Ingredient> ingredients) {
+    public Product(Long id, String name, String description, Double price, Boolean lunchOffer, Category category, List<Ingredient> ingredients) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.lunchOffer = lunchOffer;
-        this.size = size;
         this.category = category;
         this.ingredients = ingredients;
     }
@@ -54,7 +52,6 @@ public class Product {
     public String getDescription() { return description; }
     public Double getPrice() { return price; }
     public Boolean getLunchOffer() { return lunchOffer; }
-    public Size getSize() { return size; }
     public Category getCategory() { return category; }
     public List<Ingredient> getIngredients() { return ingredients; }
 
@@ -63,7 +60,6 @@ public class Product {
     public void setDescription(String description) { this.description = description; }
     public void setPrice(Double price) { this.price = price; }
     public void setLunchOffer(Boolean lunchOffer) { this.lunchOffer = lunchOffer; }
-    public void setSize(Size size) { this.size = size; }
     public void setCategory(Category category) { this.category = category; }
     public void setIngredients(List<Ingredient> ingredients) { this.ingredients = ingredients; }
 }

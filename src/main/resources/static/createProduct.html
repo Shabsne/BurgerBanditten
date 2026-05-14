@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin create product</title>
+</head>
+<body>
+<h1>Create product</h1>
+
+<form id="product-form">
+
+  <input type="text" id="name" placeholder="Name" required>
+
+  <input type="text" id="description" placeholder="Description" required>
+
+  <input type="number" id="price" placeholder="Price" required>
+
+  <select id="category">Kategori</select>
+
+    <fieldset id="ingredients-container">
+        <legend>Ingredienser</legend>
+    </fieldset>
+
+
+  <button type="submit">
+    Opret produkt
+  </button>
+</form>
+
+<div id="admin-products"></div>
+
+<script src="/js/createProduct.js"></script>
+
+</body>
+</html>
