@@ -57,6 +57,7 @@ function renderProducts(products, containerId) {
             
             <button onclick="showProduct(${product.id})">Se mere</button>
             <button onclick="showUpdateModal(${product.id})">Rediger</button>
+            <button onclick="deleteProduct(${product.id})">Slet</button>
         </div>`
     })
 }
@@ -220,6 +221,28 @@ async function updateProduct(id) {
 function closeUpdateModal() {
     const modal = document.getElementById("update-modal");
     modal.style.display = "none";
+}
+
+async function deleteProduct(id) {
+    if (!confirm("Er du sikker på at du vil slette dette produkt?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/admin/product/delete/${id}`, {
+            method: "DELETE"
+        });
+
+        if (!response.ok) {
+            throw new Error("Could not delete product");
+        }
+
+        fetchProducts();
+
+    } catch (error) {
+        console.error(error);
+        alert("Kunne ikke slette produkt");
+    }
 }
 
 window.onclick = function (event) {
