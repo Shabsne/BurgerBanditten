@@ -1,4 +1,4 @@
-package org.example.burgerbanditten.Email;
+package org.example.burgerbanditten.email;
 
 import com.sendgrid.Method;
 import com.sendgrid.Request;

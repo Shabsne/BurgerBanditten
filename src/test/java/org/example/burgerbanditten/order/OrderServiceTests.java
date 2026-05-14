@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.order;
 
-import org.example.burgerbanditten.Email.EmailService;
+import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
