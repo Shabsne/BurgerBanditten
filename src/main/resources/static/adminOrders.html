@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BurgerBanditten – Ordrer</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <!-- Link til ekstern CSS -->
+  <link rel="stylesheet" href="style.css">
+ </head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">Burger<span>Banditten</span></div>
+  <div class="page-title">Admin · Ordrer</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" id="tab-pending" onclick="switchTab('pending')">
+    Ventende <span class="badge" id="pending-count">0</span>
+  </button>
+  <button class="tab-btn" id="tab-active" onclick="switchTab('active')">
+    Aktive <span class="badge" id="active-count" style="background: var(--success)">0</span>
+  </button>
+</div>
+
+<!-- PENDING PANEL -->
+<div class="panel active" id="panel-pending">
+  <div class="orders-grid" id="pending-grid">
+    <!-- skeletons mens data hentes -->
+    <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div><div class="skel-line short"></div></div>
+    <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div><div class="skel-line short"></div></div>
+    <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div><div class="skel-line short"></div></div>
+  </div>
+</div>
+
+<!-- ACTIVE PANEL -->
+<div class="panel" id="panel-active">
+  <div class="orders-grid" id="active-grid">
+    <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div><div class="skel-line short"></div></div>
+    <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div><div class="skel-line short"></div></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script src="/js/adminOrders.js"></script>
+</body>
+</html>
