@@ -29,6 +29,12 @@ public class OrderController {
         }
     }
 
+    // Frontend: hent ventende ordrer til tab "Ventende"
+    @GetMapping("/pending")
+    public ResponseEntity<List<Order>> getPendingOrders() {
+        return ResponseEntity.ok(orderService.getPendingOrders());
+    }
+
     // #126 – Hent alle aktive (accepterede) ordrer
     @GetMapping("/active")
     public ResponseEntity<List<Order>> getActiveOrders() {

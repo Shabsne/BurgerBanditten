@@ -44,7 +44,12 @@ public class OrderService {
         return savedOrder;
     }
 
-    // #126 – Returnerer alle aktive (accepterede) ordrer til admin-visning
+    // Frontend: tab "Ventende"
+    public List<Order> getPendingOrders() {
+        return orderRepository.findByOrderStatus(OrderStatus.PENDING);
+    }
+
+    // #126 – Frontend: tab "Aktive"
     public List<Order> getActiveOrders() {
         return orderRepository.findByOrderStatus(OrderStatus.ACCEPTED);
     }
