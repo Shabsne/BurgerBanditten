@@ -7,9 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
-@Controller
-@RequestMapping("/admin/opening-hours")
+@RestController
+@RequestMapping("/admin/opening-hours/api")
 public class OpeningHoursAdminController {
 
     private final OpeningHoursService openingHoursService;
@@ -18,30 +19,18 @@ public class OpeningHoursAdminController {
         this.openingHoursService = openingHoursService;
     }
 
-    @GetMapping
-    public String showOpeningHoursPage(Model model) {
-        model.addAttribute(
-                "weeklySchedule",
-                openingHoursService.getWeeklySchedule()
-        );
-
-        model.addAttribute(
-                "holidayOpeningHours",
-                openingHoursService.getAllHolidayOpeningHours()
-        );
-
-        return "admin-opening-hours";
+    @GetMapping("/weekly")
+    public List<OpeningHours> getWeeklySchedule() {
+        return openingHoursService.getWeeklySchedule();
     }
 
-    @PostMapping("/api")
-    @ResponseBody
-    public OpeningHours updateOrderingWindowApi(
+    @PostMapping("/weekly")
+    public OpeningHours updateOpeningHours(
             @RequestParam DayOfWeek dayOfWeek,
             @RequestParam String openTime,
             @RequestParam String closeTime,
-            @RequestParam(required = false) boolean active
+            @RequestParam boolean active
     ) {
-
         return openingHoursService.updateOpeningHours(
                 dayOfWeek,
                 LocalTime.parse(openTime),
@@ -50,29 +39,30 @@ public class OpeningHoursAdminController {
         );
     }
 
-    @PostMapping("/holiday")
-    public String addHolidayOpeningHours(
+    @GetMapping("/holidays")
+    public List<HolidayOpeningHours> getHolidays() {
+        return openingHoursService.getAllHolidayOpeningHours();
+    }
+
+    @PostMapping("/holidays")
+    public HolidayOpeningHours addHolidayOpeningHours(
             @RequestParam String description,
             @RequestParam String date,
             @RequestParam String openTime,
             @RequestParam String closeTime,
-            @RequestParam(required = false) boolean active
+            @RequestParam boolean active
     ) {
-        openingHoursService.addHolidayOpeningHours(
+        return openingHoursService.addHolidayOpeningHours(
                 description,
                 LocalDate.parse(date),
                 LocalTime.parse(openTime),
                 LocalTime.parse(closeTime),
                 active
         );
-
-        return "redirect:/admin/opening-hours";
     }
 
-    @PostMapping("/holiday/delete")
-    public String deleteHolidayOpeningHours(@RequestParam Long id) {
+    @DeleteMapping("/holidays/{id}")
+    public void deleteHolidayOpeningHours(@PathVariable Long id) {
         openingHoursService.deleteHolidayOpeningHours(id);
-
-        return "redirect:/admin/opening-hours";
     }
 }

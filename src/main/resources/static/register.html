@@ -22,65 +22,44 @@
     ✓ Konto oprettet! Tjek din email for bekræftelse.
   </div>
 
-  <form id="registerForm" novalidate>
+    <form id="registerForm" novalidate>
 
-    <!-- Navn -->
-    <div class="form-group">
-      <label for="name">Fuldt navn</label>
-      <input type="text" id="name" placeholder="Eks. Anders Jensen" autocomplete="name"/>
-      <div class="error-msg" id="nameError"></div>
-    </div>
-
-    <!-- Email -->
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input
-              type="email"
-              id="email"
-              placeholder="Eks. anders@email.dk"
-              autocomplete="email"
-      />
-      <div class="error-msg" id="emailError">Indtast en gyldig email</div>
-    </div>
-
-    <!-- Adgangskode -->
-    <div class="form-group">
-      <label for="password">Adgangskode</label>
-      <input
-              type="password"
-              id="password"
-              placeholder="Minimum 8 tegn"
-              autocomplete="new-password"
-      />
-      <!-- UX: Styrkeindikator giver løbende feedback -->
-      <div class="strength-bar" id="strengthBar">
-        <span></span><span></span><span></span>
+      <div class="form-group">
+        <label for="name">Fuldt navn</label>
+        <input type="text" id="name" placeholder="Eks. Anders Jensen" autocomplete="name"/>
+        <div class="error-msg" id="nameError"></div>
       </div>
-      <div class="strength-label" id="strengthLabel"></div>
-      <div class="error-msg" id="passwordError">Adgangskode skal være mindst 8 tegn</div>
-    </div>
 
-    <!-- Bekræft adgangskode -->
-    <div class="form-group">
-      <label for="confirmPassword">Bekræft adgangskode</label>
-      <input
-              type="password"
-              id="confirmPassword"
-              placeholder="Gentag adgangskode"
-              autocomplete="new-password"
-      />
-      <div class="error-msg" id="confirmError">Adgangskoderne stemmer ikke overens</div>
-    </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Eks. anders@email.dk" autocomplete="email"/>
+        <div class="error-msg" id="emailError"></div>
+      </div>
 
-    <!-- Primær knap -->
-    <button type="submit" class="btn-primary" id="submitBtn">
-      <div class="spinner"></div>
-      <span class="btn-text">Opret konto</span>
-    </button>
+      <div class="form-group">
+        <label for="password">Adgangskode</label>
+        <input type="password" id="password" placeholder="Minimum 8 tegn" autocomplete="new-password"/>
+        <div class="strength-bar" id="strengthBar">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="strength-label" id="strengthLabel"></div>
+        <div class="error-msg" id="passwordError"></div>
+      </div>
 
-  </form>
+      <div class="form-group">
+        <label for="confirmPassword">Bekræft adgangskode</label>
+        <input type="password" id="confirmPassword" placeholder="Gentag adgangskode" autocomplete="new-password"/>
+        <div class="error-msg" id="confirmError"></div>
+      </div>
 
-  <div class="divider">eller</div>
+      <button type="submit" class="btn-primary" id="submitBtn">
+        <div class="spinner"></div>
+        <span class="btn-text">Opret konto</span>
+      </button>
+
+    </form>
+
+    <div class="divider">eller</div>
 
   <!-- Sekundær handling -->
   <div class="login-link">
