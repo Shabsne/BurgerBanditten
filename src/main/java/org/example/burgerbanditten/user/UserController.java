@@ -1,8 +1,12 @@
 package org.example.burgerbanditten.user;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -14,7 +18,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // POST /api/users/register – Opret konto
+    // POST register – Opret konto
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
@@ -25,7 +29,7 @@ public class UserController {
         }
     }
 
-    // POST /api/users/login – Login
+    // POST login – Login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
         try {
@@ -38,7 +42,7 @@ public class UserController {
         }
     }
 
-    // POST /api/users/forgot-password – Glemt adgangskode
+    // POST forgot-password – Glemt adgangskode
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
         try {
@@ -48,5 +52,19 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    // POST logout – Logout
+    // Afslutter brugerens session og redirecter til menuen
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null) {
+            // Afslut session via Spring Security
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+
+        return ResponseEntity.ok("/menu.html");
     }
 }
