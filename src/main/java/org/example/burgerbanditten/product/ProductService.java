@@ -44,8 +44,11 @@ public class ProductService {
         product.setLunchOffer(dto.lunchOffer());
         product.setCategory(dto.category());
 
+
         List<Ingredient> ingredients = ingredientRepository.findAllById(dto.ingredients());
         product.setIngredients(ingredients);
+
+        product.setImage(dto.image());
 
         Product savedProduct = repository.save(product);
 
@@ -65,6 +68,10 @@ public class ProductService {
 
         List<Ingredient> ingredients = ingredientRepository.findAllById(dto.ingredients());
         product.setIngredients(ingredients);
+
+        if (dto.image() != null) {
+            product.setImage(dto.image());
+        }
 
         Product updatedProduct = repository.save(product);
 

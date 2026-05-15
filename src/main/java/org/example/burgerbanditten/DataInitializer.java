@@ -2,6 +2,9 @@ package org.example.burgerbanditten;
 
 import org.example.burgerbanditten.Ingredient.Ingredient;
 import org.example.burgerbanditten.Ingredient.IngredientRepository;
+import org.example.burgerbanditten.user.Role;
+import org.example.burgerbanditten.user.User;
+import org.example.burgerbanditten.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +22,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private IngredientRepository ingredientRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
 
     @Override
@@ -54,8 +60,53 @@ public class DataInitializer implements CommandLineRunner {
                 List.of(cheese, bacon)
         );
 
+
+        Product cola = new Product(
+                null,
+                "Coca Cola",
+                "0.5L soda",
+                25.0,
+                false,
+                Category.DRINK,
+                null
+        );
+
+        productRepository.saveAll(
+                List.of(
+                        cheeseBurger,
+                        cola
+                )
+        );
+
+        User admin = new User(
+                null,
+                "Admin",
+                "admin@mail.com",
+                "admin123",
+                Role.ADMIN
+        );
+
+        User customer = new User(
+                null,
+                "Customer",
+                "Customer@mail.com",
+                "customer123",
+                Role.CUSTOMER
+        );
+
+
+
+
+
         productRepository.save(cheeseBurger);
 
+
+        userRepository.saveAll(
+                List.of(
+                        admin,
+                        customer
+                )
+        );
     };
 
 }

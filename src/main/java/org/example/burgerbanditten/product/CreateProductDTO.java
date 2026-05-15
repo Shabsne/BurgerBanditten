@@ -9,5 +9,6 @@ public record CreateProductDTO(String name,
                                Double price,
                                Boolean lunchOffer,
                                Category category,
-                               List<Long> ingredients) {
+                               List<Long> ingredients,
+                               String image) {
 }
