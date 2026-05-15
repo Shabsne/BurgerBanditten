@@ -4,66 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BurgerBanditten – Opret Konto</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css">
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .page-content {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-
-    .card { max-width: 480px; width: 100%; }
-
-    .login-link {
-      text-align: center;
-      font-size: 0.88rem;
-      color: var(--muted);
-    }
-
-    .strength-bar {
-      display: flex;
-      gap: 4px;
-      margin-top: 0.5rem;
-    }
-
-    .strength-bar span {
-      flex: 1;
-      height: 3px;
-      border-radius: 2px;
-      background: var(--border);
-      transition: background 0.3s;
-    }
-
-    .strength-bar.weak   span:nth-child(1)    { background: var(--error); }
-    .strength-bar.medium span:nth-child(-n+2) { background: var(--warning); }
-    .strength-bar.strong span                 { background: var(--success); }
-
-    .strength-label {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 0.3rem;
-    }
-  </style>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <!-- Link til ekstern CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-glow">
+<body>
 
-<div class="page-content">
-  <div class="card fade-up">
-    <div class="logo">Burger<span>Banditten</span></div>
-    <div class="subtitle">Opret din konto</div>
+<div class="card">
 
-    <div class="success-banner" id="successBanner" style="display:none">
-      ✓ Konto oprettet! Tjek din email for bekræftelse.
-    </div>
+  <!-- Logo -->
+  <div class="logo">Burger<span>Banditten</span></div>
+  <div class="subtitle">Opret din konto</div>
+
+  <!-- Success banner -->
+  <div class="success-banner" id="successBanner">
+    ✓ Konto oprettet! Tjek din email for bekræftelse.
+  </div>
 
     <form id="registerForm" novalidate>
 
@@ -104,13 +61,158 @@
 
     <div class="divider">eller</div>
 
-    <div class="login-link">
-      Har du allerede en konto? <a href="/login.html">Log ind her</a>
-    </div>
+  <!-- Sekundær handling -->
+  <div class="login-link">
+    Har du allerede en konto? <a href="/login">Log ind her</a>
   </div>
 </div>
 
-<script src="/js/register.js"></script>
+<script>
+  // Script logik bibeholdes her da det er sidespecifikt
+  const form = document.getElementById('registerForm');
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const confirmInput = document.getElementById('confirmPassword');
+  const submitBtn = document.getElementById('submitBtn');
+  const successBanner = document.getElementById('successBanner');
+
+  // ── Adgangskode styrke ──────────────────────────────
+  passwordInput.addEventListener('input', () => {
+    const val = passwordInput.value;
+    const bar = document.getElementById('strengthBar');
+    const label = document.getElementById('strengthLabel');
+
+    if (val.length === 0) {
+      bar.className = 'strength-bar';
+      label.textContent = '';
+      return;
+    }
+
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    if (score === 1) { bar.className = 'strength-bar weak';   label.textContent = 'Svag'; }
+    if (score === 2) { bar.className = 'strength-bar medium';  label.textContent = 'Medium'; }
+    if (score === 3) { bar.className = 'strength-bar strong';  label.textContent = 'Stærk'; }
+  });
+
+  // ── Hjælpefunktioner ────────────────────────────────
+  function setError(input, msgEl, message) {
+    input.classList.add('error');
+    input.classList.remove('success');
+    msgEl.textContent = message;
+    msgEl.classList.add('visible');
+  }
+
+  function setSuccess(input, msgEl) {
+    input.classList.remove('error');
+    input.classList.add('success');
+    msgEl.classList.remove('visible');
+  }
+
+  function clearState(input, msgEl) {
+    input.classList.remove('error', 'success');
+    msgEl.classList.remove('visible');
+  }
+
+  // ── Live validering (UX: feedback mens man skriver) ──
+  nameInput.addEventListener('blur', () => {
+    const nameError = document.getElementById('nameError');
+    if (nameInput.value.trim().length < 2) {
+      setError(nameInput, nameError, 'Navn skal udfyldes');
+    } else {
+      setSuccess(nameInput, nameError);
+    }
+  });
+
+  emailInput.addEventListener('blur', () => {
+    const emailError = document.getElementById('emailError');
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
+    if (!valid) {
+      setError(emailInput, emailError, 'Indtast en gyldig email');
+    } else {
+      setSuccess(emailInput, emailError);
+    }
+  });
+
+  confirmInput.addEventListener('blur', () => {
+    const confirmError = document.getElementById('confirmError');
+    if (confirmInput.value !== passwordInput.value) {
+      setError(confirmInput, confirmError, 'Adgangskoderne stemmer ikke overens');
+    } else {
+      setSuccess(confirmInput, confirmError);
+    }
+  });
+
+  // ── Indsendelse ─────────────────────────────────────
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nameError     = document.getElementById('nameError');
+    const emailError    = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const confirmError  = document.getElementById('confirmError');
+
+    let valid = true;
+
+    if (nameInput.value.trim().length < 2) {
+      setError(nameInput, nameError, 'Navn skal udfyldes'); valid = false;
+    }
+
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
+    if (!emailOk) {
+      setError(emailInput, emailError, 'Indtast en gyldig email'); valid = false;
+    }
+
+    if (passwordInput.value.length < 8) {
+      setError(passwordInput, passwordError, 'Adgangskode skal være mindst 8 tegn'); valid = false;
+    }
+
+    if (confirmInput.value !== passwordInput.value) {
+      setError(confirmInput, confirmError, 'Adgangskoderne stemmer ikke overens'); valid = false;
+    }
+
+    if (!valid) return;
+
+    // Loading state
+    submitBtn.classList.add('loading');
+
+    try {
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: nameInput.value.trim(),
+          mail: emailInput.value.trim(),
+          password: passwordInput.value
+        })
+      });
+
+      if (response.ok) {
+        // Vis success og nulstil form
+        successBanner.style.display = 'block';
+        form.reset();
+        [nameInput, emailInput, passwordInput, confirmInput].forEach(i => {
+          i.classList.remove('success', 'error');
+        });
+        document.getElementById('strengthBar').className = 'strength-bar';
+        document.getElementById('strengthLabel').textContent = '';
+      } else {
+        const msg = await response.text();
+        // Vis serverfejl under email feltet
+        setError(emailInput, emailError, msg);
+      }
+
+    } catch (err) {
+      setError(emailInput, emailError, 'Noget gik galt – prøv igen');
+    } finally {
+      submitBtn.classList.remove('loading');
+    }
+  });
+</script>
 
 </body>
 </html>
