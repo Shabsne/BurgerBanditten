@@ -100,6 +100,9 @@ form.addEventListener('submit', async (e) => {
 
         if (response.ok) {
             successBanner.style.display = 'block';
+            setTimeout(() => {
+                window.location.href = '/menu.html';
+            }, 2000);
             form.reset();
             [nameInput, emailInput, passwordInput, confirmInput].forEach(i => {
                 i.classList.remove('success', 'error');
