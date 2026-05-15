@@ -8,6 +8,7 @@ public record UpdateProductDTO(
         Double price,
         Boolean lunchOffer,
         Category category,
-        List<Long> ingredients
+        List<Long> ingredients,
+        String image
 ) {
 }

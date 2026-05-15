@@ -9,11 +9,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity
     public class SecurityConfig {
 
         @Autowired
@@ -32,9 +35,15 @@ import org.springframework.security.web.SecurityFilterChain;
         }
 
         @Bean
+        public WebSecurityCustomizer webSecurityCustomizer() {
+            return web -> web.ignoring().requestMatchers("/h2-console/**");
+        }
+
+        @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
                     .csrf(csrf -> csrf.disable())
+                    .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                     .authorizeHttpRequests(auth -> auth
 
                             // Alle kan se disse sider
@@ -52,6 +61,9 @@ import org.springframework.security.web.SecurityFilterChain;
                                     "/categories",
                                     "/ingredients")
                             .permitAll()
+
+                            .requestMatchers(HttpMethod.GET, "/h2-console/**").permitAll()
+
 
                             // Alle kan registrere og logge ind
                             .requestMatchers(

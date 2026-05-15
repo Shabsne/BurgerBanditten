@@ -58,6 +58,14 @@ async function createProduct(event) {
 
     event.preventDefault();
 
+    const fileInput = document.getElementById("image");
+    const file = fileInput.files[0];
+    const image = file ? await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    }) : null;
+
     const product = {
 
         name:
@@ -78,6 +86,8 @@ async function createProduct(event) {
             .map(checkbox => checkbox.value),
 
         lunchOffer: false,
+
+        image: image
 
 
     };
