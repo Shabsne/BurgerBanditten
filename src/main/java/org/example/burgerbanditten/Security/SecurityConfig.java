@@ -52,8 +52,7 @@ import org.springframework.security.web.SecurityFilterChain;
                                     "/register.html",
                                     "/menu.html",
                                     "/css/**",
-                                    "/js/**",
-                                    "/admin/product/create"
+                                    "/js/**"
                             ).permitAll()
 
                             .requestMatchers(HttpMethod.GET,
@@ -63,7 +62,7 @@ import org.springframework.security.web.SecurityFilterChain;
                                     "/ingredients")
                             .permitAll()
 
-                            .requestMatchers("/h2-console/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/h2-console/**").permitAll()
 
 
                             // Alle kan registrere og logge ind

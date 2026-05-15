@@ -11,45 +11,50 @@ import org.springframework.context.annotation.Configuration;
 import org.example.burgerbanditten.product.Category;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Configuration
-public class DataInitializer implements CommandLineRunner {
+@Component
+public final class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private ProductRepository productRepository;
 
-    @Autowired
-    private IngredientRepository ingredientRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private UserRepository userRepository;
 
+    private final IngredientRepository ingredientRepository;
+
+
+    private final UserRepository userRepository;
+
+    // Injicér BCrypt encoder fra SecurityConfig
+
+    private final PasswordEncoder passwordEncoder;
+
+    public DataInitializer(ProductRepository productRepository, IngredientRepository ingredientRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.productRepository = productRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public void run(String... args) throws Exception {
 
+        // Opret kun data hvis databasen er tom
+        if (userRepository.count() > 0) return;
+
+        // ── Ingredienser ─────────────────────────────────
         Ingredient cheese = ingredientRepository.save(
-                new Ingredient(
-                        null,
-                        "Cheese",
-                        5.0,
-                        100,
-                        true
-                )
+                new Ingredient(null, "Cheese", 5.0, 100, true)
         );
 
         Ingredient bacon = ingredientRepository.save(
-                new Ingredient(
-                        null,
-                        "Bacon",
-                        8.0,
-                        100,
-                        true
-                )
+                new Ingredient(null, "Bacon", 8.0, 100, true)
         );
 
+        // ── Produkter ────────────────────────────────────
         Product cheeseBurger = new Product(
                 null,
                 "Cheese Burger",
@@ -59,7 +64,6 @@ public class DataInitializer implements CommandLineRunner {
                 Category.BURGER,
                 List.of(cheese, bacon)
         );
-
 
         Product cola = new Product(
                 null,
@@ -71,42 +75,26 @@ public class DataInitializer implements CommandLineRunner {
                 null
         );
 
-        productRepository.saveAll(
-                List.of(
-                        cheeseBurger,
-                        cola
-                )
-        );
+        productRepository.saveAll(List.of(cheeseBurger, cola));
 
+        // ── Brugere – adgangskoder hashes med BCrypt ─────
         User admin = new User(
                 null,
                 "Admin",
                 "admin@mail.com",
-                "admin123",
+                passwordEncoder.encode("admin123"),  // ← BCrypt hash
                 Role.ADMIN
         );
 
         User customer = new User(
                 null,
                 "Customer",
-                "Customer@mail.com",
-                "customer123",
+                "customer@mail.com",
+                passwordEncoder.encode("customer123"),  // ← BCrypt hash
                 Role.CUSTOMER
         );
 
-
-
-
-
-        productRepository.save(cheeseBurger);
-
-
-        userRepository.saveAll(
-                List.of(
-                        admin,
-                        customer
-                )
-        );
-    };
-
+        userRepository.save(admin);
+        userRepository.save(customer);
+    }
 }
