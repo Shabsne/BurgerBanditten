@@ -35,6 +35,9 @@ public class Product {
     )
     private List<Ingredient> ingredients = new ArrayList<>();
 
+    @Column(columnDefinition = "TEXT")
+    private String image;
+
     public Product() {}
 
     public Product(Long id, String name, String description, Double price, Boolean lunchOffer, Category category, List<Ingredient> ingredients) {
@@ -54,6 +57,7 @@ public class Product {
     public Boolean getLunchOffer() { return lunchOffer; }
     public Category getCategory() { return category; }
     public List<Ingredient> getIngredients() { return ingredients; }
+    public String getImage() { return image; }
 
     public void setId(Long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
@@ -62,4 +66,5 @@ public class Product {
     public void setLunchOffer(Boolean lunchOffer) { this.lunchOffer = lunchOffer; }
     public void setCategory(Category category) { this.category = category; }
     public void setIngredients(List<Ingredient> ingredients) { this.ingredients = ingredients; }
+    public void setImage(String image) { this.image = image; }
 }

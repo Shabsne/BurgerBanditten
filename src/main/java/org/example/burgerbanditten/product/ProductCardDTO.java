@@ -4,5 +4,6 @@ public record ProductCardDTO(Long id,
                              String name,
                              String description,
                              Double price,
-                             Category category) {
+                             Category category,
+                             String image) {
 }

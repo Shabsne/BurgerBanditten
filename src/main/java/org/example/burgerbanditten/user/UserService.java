@@ -51,7 +51,7 @@ public class UserService {
 
         // Hash adgangskoden med BCrypt inden den gemmes
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(Role.Customer);
+        user.setRole(Role.CUSTOMER);
 
         User savedUser = userRepository.save(user);
         emailService.sendRegistrationConfirmation(savedUser.getMail(), savedUser.getName());

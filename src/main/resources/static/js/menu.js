@@ -48,6 +48,9 @@ function renderProducts(products, containerId) {
 
         container.innerHTML += `
             <div class="product-card">
+            
+            <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover">
+            
 
             <h3>${product.name}</h3>
             
@@ -56,8 +59,8 @@ function renderProducts(products, containerId) {
             <p>${product.price} kr.</p>
             
             <button onclick="showProduct(${product.id})">Se mere</button>
-            <button onclick="showUpdateModal(${product.id})">Rediger</button>
-            <button onclick="deleteProduct(${product.id})">Slet</button>
+            <button id="admin-button" style="display: none" onclick="showUpdateModal(${product.id})">Rediger</button>
+            <button id="admin-button" style="display: none" onclick="deleteProduct(${product.id})">Slet</button>
         </div>`
     })
 }
@@ -170,6 +173,8 @@ async function showUpdateModal(id) {
                     <legend>Ingredienser</legend>
                     ${ingredientCheckboxes}
                 </fieldset>
+                <input type="file" id="update-image" accept="image/*">
+                <img src="${product.image}" style="width: 100px;" id="update-preview"
                 <button onclick="updateProduct(${product.id})">Gem ændringer</button>
             </div>
         `;
@@ -186,6 +191,17 @@ async function showUpdateModal(id) {
 
 
 async function updateProduct(id) {
+
+    const fileInput = document.getElementById("update-image");
+    const file = fileInput.files[0];
+
+    const toBase64 = file => new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
+
+    const image = file ? await toBase64(file) : null
 
     const updatedProduct = {
         name: document.getElementById("update-name").value,
@@ -245,6 +261,25 @@ async function deleteProduct(id) {
     }
 }
 
+async function checkAdmin() {
+
+    try {
+        const response = await fetch("/api/users/is-admin");
+
+        const isAdmin = await response.json();
+
+        if (isAdmin) {
+
+            document.getElementById("admin-button").style.display = "block";
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+}
+
 window.onclick = function (event) {
     const modal = document.getElementById("modal");
     const updateModal = document.getElementById("update-modal")
@@ -259,3 +294,4 @@ window.onclick = function (event) {
 }
 
 fetchProducts();
+checkAdmin();
