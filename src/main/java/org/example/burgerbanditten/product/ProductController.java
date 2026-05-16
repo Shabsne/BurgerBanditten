@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.product;
 
-import org.example.burgerbanditten.Ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.Ingredient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/products")
 public class ProductController {
 
     private final ProductService service;

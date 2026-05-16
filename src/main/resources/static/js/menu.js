@@ -2,7 +2,7 @@ async function fetchProducts() {
 
     try {
 
-        const response = await fetch("/menu")
+        const response = await fetch("api/products/menu")
 
         if (!response.ok) {
             throw new Error("Could not fetch products");
@@ -49,8 +49,7 @@ function renderProducts(products, containerId) {
         container.innerHTML += `
             <div class="product-card">
             
-            <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover">
-            
+            ${product.image ? `<img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover">` : ''}            
 
             <h3>${product.name}</h3>
             
@@ -59,8 +58,8 @@ function renderProducts(products, containerId) {
             <p>${product.price} kr.</p>
             
             <button onclick="showProduct(${product.id})">Se mere</button>
-            <button id="admin-button" style="display: none" onclick="showUpdateModal(${product.id})">Rediger</button>
-            <button id="admin-button" style="display: none" onclick="deleteProduct(${product.id})">Slet</button>
+            <button class="admin-button" style="display: none" onclick="showUpdateModal(${product.id})">Rediger</button>
+            <button class="admin-button" style="display: none" onclick="deleteProduct(${product.id})">Slet</button>
         </div>`
     })
 }
@@ -69,7 +68,7 @@ async function showProduct(id) {
 
     try {
 
-        const response = await fetch(`/product/${id}`);
+        const response = await fetch(`/api/products/product/${id}`);
 
         if (!response.ok) {
             throw new Error("Could not fetch product");
@@ -130,15 +129,15 @@ async function showUpdateModal(id) {
 
     try {
 
-        const response = await fetch(`/product/${id}`);
+        const response = await fetch(`/api/products/product/${id}`);
 
         if (!response.ok) {
             throw new Error("Could not fetch product")
         }
 
         const product = await response.json();
-        const categories = await fetch("/categories").then(r => r.json());
-        const ingredients = await fetch("/ingredients").then(r => r.json());
+        const categories = await fetch("/api/products/categories").then(r => r.json());
+        const ingredients = await fetch("/api/products/ingredients").then(r => r.json());
 
         const categoryOptions = categories.map(category => `
             <option value="${category}" ${product.category == category ? "selected" : ""}>
@@ -173,8 +172,11 @@ async function showUpdateModal(id) {
                     <legend>Ingredienser</legend>
                     ${ingredientCheckboxes}
                 </fieldset>
-                <input type="file" id="update-image" accept="image/*">
-                <img src="${product.image}" style="width: 100px;" id="update-preview"
+                <input type="file" id="update-image" accept="image/*" onchange="previewUpdateImage(this)">
+                    ${product.image ? `
+                        <img src="${product.image}" style="width: 100px;" id="update-preview">
+                        <button onclick="removeImage(${product.id})">Fjern billede</button>
+                            ` : '<p id="no-image-text">Intet billede</p>'}
                 <button onclick="updateProduct(${product.id})">Gem ændringer</button>
             </div>
         `;
@@ -210,11 +212,12 @@ async function updateProduct(id) {
         category: document.getElementById("update-category").value,
         ingredients: [...document.querySelectorAll("input[name='ingredients']:checked")]
             .map(checkbox => parseInt(checkbox.value)),
-        lunchOffer: document.getElementById("update-lunchOffer").checked
+        lunchOffer: document.getElementById("update-lunchOffer").checked,
+        image: image
     };
 
     try {
-        const response = await fetch(`/admin/product/update/${id}`, {
+        const response = await fetch(`/api/products/admin/product/update/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json"},
             body: JSON.stringify(updatedProduct)
@@ -225,7 +228,9 @@ async function updateProduct(id) {
         }
 
         closeUpdateModal();
-        fetchProducts();
+        await fetchProducts();
+        await checkAdmin();
+
 
     } catch (error) {
         console.error(error);
@@ -245,7 +250,7 @@ async function deleteProduct(id) {
     }
 
     try {
-        const response = await fetch(`/admin/product/delete/${id}`, {
+        const response = await fetch(`/api/products/admin/product/delete/${id}`, {
             method: "DELETE"
         });
 
@@ -270,7 +275,9 @@ async function checkAdmin() {
 
         if (isAdmin) {
 
-            document.getElementById("admin-button").style.display = "block";
+            document.querySelectorAll(".admin-button").forEach(btn => {
+                btn.style.display = "block";
+            });
         }
 
     } catch (error) {
@@ -279,6 +286,7 @@ async function checkAdmin() {
 
     }
 }
+
 
 window.onclick = function (event) {
     const modal = document.getElementById("modal");
@@ -293,5 +301,8 @@ window.onclick = function (event) {
     }
 }
 
-fetchProducts();
-checkAdmin();
+async function init() {
+    await fetchProducts();
+    await checkAdmin();
+}
+init();
