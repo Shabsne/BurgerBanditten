@@ -58,8 +58,10 @@ public class OrderService {
     }
 
     public Order createOrderWithPickUpTime(Order order, String pickUpTimeString) {
+        //Gem ordren først
         Order savedOrder = orderRepository.save(order);
 
+        //Hvis der er et forudbestilt tidspunkt, gem det
         if (pickUpTimeString != null && !pickUpTimeString.isEmpty()) {
             try {
                 java.time.LocalDateTime pickUpDateTime =
