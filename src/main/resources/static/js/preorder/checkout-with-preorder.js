@@ -118,17 +118,3 @@ function handleCheckoutClick() {
     // Gå til checkout
     window.location.href = '/checkout.html';
 }
-
-// ── Integration med menu.js ──────────────────────────────────────────────────
-
-// Hvis du bruger de nuværende menu.js, tilføj dette:
-//
-// 1. Når siden loader, check om butik er åben:
-//    const isOpen = await checkStoreOpenStatus();
-//    sessionStorage.setItem('storeOpen', isOpen);
-//
-// 2. Når "Gå til betaling" klikkes:
-//    if (!checkPreorderBeforeCheckout()) return;
-//
-// 3. Ved ordre submission:
-//    await createOrderWithPreorder(cartItems);
