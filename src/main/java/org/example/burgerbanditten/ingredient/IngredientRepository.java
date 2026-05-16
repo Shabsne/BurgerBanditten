@@ -1,4 +1,4 @@
-package org.example.burgerbanditten.ingredient;
+package org.example.burgerbanditten.Ingredient;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
