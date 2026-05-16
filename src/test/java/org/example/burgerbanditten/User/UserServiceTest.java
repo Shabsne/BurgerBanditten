@@ -116,7 +116,7 @@ public class UserServiceTest {
                 .sendRegistrationConfirmation(validUser.getMail(), validUser.getName());
 
         // Tjek at rolle er sat til CUSTOMER
-        assertEquals(Role.Customer, oprettetUser.getRole());
+        assertEquals(Role.CUSTOMER, oprettetUser.getRole());
     }
 }
 

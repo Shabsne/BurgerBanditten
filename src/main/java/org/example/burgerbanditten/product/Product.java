@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.product;
 
-import org.example.burgerbanditten.Ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.Ingredient;
 import jakarta.persistence.*;
 
 
@@ -35,7 +35,7 @@ public class Product {
     )
     private List<Ingredient> ingredients = new ArrayList<>();
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String image;
 
     public Product() {}

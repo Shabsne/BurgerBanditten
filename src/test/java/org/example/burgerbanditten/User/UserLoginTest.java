@@ -43,7 +43,7 @@ class UserLoginTest {
         eksisterendeBruger.setName("Anders Jensen");
         eksisterendeBruger.setMail("anders@gmail.com");
         eksisterendeBruger.setPassword("password123");
-        eksisterendeBruger.setRole(Role.Customer);
+        eksisterendeBruger.setRole(Role.CUSTOMER);
     }
 
     // ── Login tests ──────────────────────────────────────
