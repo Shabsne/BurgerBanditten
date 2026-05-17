@@ -67,6 +67,7 @@ public class OpeningHoursService {
     public NextOpeningDto getNextOpening() {
         LocalDate currentDate = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
+        LocalDateTime now = currentDate.atTime(currentTime);
 
         if (isOrderingOpen()) {
             return new NextOpeningDto(true, currentDate, null, null, null);
@@ -75,36 +76,64 @@ public class OpeningHoursService {
         for (int i = 0; i < 14; i++) {
             LocalDate dateToCheck = currentDate.plusDays(i);
 
-            Optional<HolidayOpeningHours> holiday = holidayOpeningHoursRepository.findByDate(dateToCheck);
+            Optional<NextOpeningDto> holidayOpening = getHolidayOpening(dateToCheck, now);
+            if (holidayOpening.isPresent()) {
+                return holidayOpening.get();
+            }
 
-            if (holiday.isPresent()) {
-                HolidayOpeningHours h = holiday.get();
-
-                if (h.isActive() && dateToCheck.atTime(h.getOpenTime()).isAfter(currentDate.atTime(currentTime))) {
-                    return new NextOpeningDto(
-                            false,
-                            dateToCheck,
-                            h.getOpenTime(),
-                            h.getCloseTime(),
-                            "Burger Banditten åbner " + dateToCheck + " kl. " + h.getOpenTime());
-                }
-            } else {
-                OpeningHours weekly = openingHoursRepository
-                        .findByDayOfWeek(dateToCheck.getDayOfWeek())
-                        .orElse(null);
-
-                if (weekly != null && weekly.isActive()) {
-                    boolean isTodayButAlreadyClosed =
-                            dateToCheck.equals(currentDate) && currentTime.isAfter(weekly.getCloseTime());
-
-                    if (!isTodayButAlreadyClosed) {
-                        return new NextOpeningDto(false, dateToCheck, weekly.getOpenTime(), weekly.getCloseTime(),
-                        "Burger Banditten åbner " + dateToCheck + " kl. " + weekly.getOpenTime());
-                    }
-                }
+            Optional<NextOpeningDto> weeklyOpening = getWeeklyOpening(dateToCheck, now);
+            if (weeklyOpening.isPresent()) {
+                return weeklyOpening.get();
             }
         }
-        return new NextOpeningDto(false, null, null, null, "Der er ingen kommende åbningstider registreret");
+        return new NextOpeningDto(false, null, null, null,
+                "Der er ingen kommende åbningstider registreret");
+    }
+
+    private Optional<NextOpeningDto> getHolidayOpening(LocalDate dateToCheck, LocalDateTime now) {
+        Optional<HolidayOpeningHours> holiday = holidayOpeningHoursRepository.findByDate(dateToCheck);
+
+        if (holiday.isEmpty()) {
+            return Optional.empty();
+        }
+
+        HolidayOpeningHours h = holiday.get();
+
+        if (!h.isActive() || !dateToCheck.atTime(h.getOpenTime()).isAfter(now)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(createNextOpeningDto(dateToCheck, h.getOpenTime(), h.getCloseTime()));
+    }
+
+    private Optional<NextOpeningDto> getWeeklyOpening(LocalDate dateToCheck, LocalDateTime now) {
+        OpeningHours weekly = openingHoursRepository
+                .findByDayOfWeek(dateToCheck.getDayOfWeek())
+                .orElse(null);
+
+        if (weekly == null || !weekly.isActive()) {
+            return Optional.empty();
+        }
+
+        if (!dateToCheck.atTime(weekly.getCloseTime()).isAfter(now)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(createNextOpeningDto(dateToCheck, weekly.getOpenTime(), weekly.getCloseTime()));
+    }
+
+    private NextOpeningDto createNextOpeningDto(
+            LocalDate date,
+            LocalTime openTime,
+            LocalTime closeTime
+    ) {
+        return new NextOpeningDto(
+                false,
+                date,
+                openTime,
+                closeTime,
+                "Burger Banditten åbner " + date + " kl. " + openTime
+        );
     }
 
     public List<HolidayOpeningHours> getAllHolidayOpeningHours() {
