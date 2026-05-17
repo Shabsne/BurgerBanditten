@@ -27,7 +27,10 @@ public class PreOrderService {
             throw new IllegalArgumentException("Kan ikke vælge tidspunkt i fortiden");
         }
 
-        //TODO: Implementer åbningstidsvalidering mod OpeningHoursService
+        if (!openingHoursService.isOpenAt(pickUpDateTime)) {
+            throw new IllegalArgumentException("Valgt afhentningstidspunkt er uden for aabningstiden");
+        }
+
         return true;
     }
 
