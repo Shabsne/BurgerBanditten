@@ -2,6 +2,7 @@ package org.example.burgerbanditten.user;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -33,11 +35,16 @@ public class UserController {
 
     // POST login – Login
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData, HttpServletRequest request) {
         try {
             String mail = loginData.get("mail");
             String password = loginData.get("password");
+            HttpSession session = request.getSession(true);
             User loggedInUser = userService.loginUser(mail, password);
+
+            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                    SecurityContextHolder.getContext());
+
             return ResponseEntity.ok(loggedInUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -73,11 +80,15 @@ public class UserController {
     @GetMapping("/is-admin")
     public ResponseEntity<Boolean> isAdmin(Authentication authentication) {
 
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.ok(false);
+        }
+
         boolean isAdmin = authentication.getAuthorities()
                 .stream()
                 .anyMatch(authority ->
                         authority.getAuthority()
-                                .equals("ADMIN"));
+                                .equals("ROLE_ADMIN"));
 
         return ResponseEntity.ok(isAdmin);
     }

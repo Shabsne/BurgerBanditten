@@ -55,6 +55,8 @@ import org.springframework.security.web.SecurityFilterChain;
                                     "/js/**"
                             ).permitAll()
 
+                            .requestMatchers("/api/users/is-admin").permitAll()
+
                             .requestMatchers(HttpMethod.GET,
                                     "/menu",
                                     "/product/**",
@@ -77,7 +79,7 @@ import org.springframework.security.web.SecurityFilterChain;
                             .requestMatchers("/api/orders/guest/**").permitAll()
 
                             // Kun ADMIN må tilgå admin endpoints
-                            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                            .requestMatchers("/admin/**").hasRole("ADMIN")
 
                             // CUSTOMER og ADMIN kan bestille
                             .requestMatchers("/api/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
