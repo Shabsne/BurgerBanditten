@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -60,34 +61,7 @@ public class OpeningHoursService {
     }
 
     public boolean isOrderingOpen() {
-        LocalDate currentDate = LocalDate.now();
-        LocalTime currentTime = LocalTime.now();
-
-        Optional<HolidayOpeningHours> holidayOpeningHours = holidayOpeningHoursRepository.findByDate(currentDate);
-
-        if (holidayOpeningHours.isPresent()) {
-            HolidayOpeningHours openingHours = holidayOpeningHours.get();
-
-            if (!openingHours.isActive()) {
-                return false;
-            }
-
-            return !currentTime.isBefore(openingHours.getOpenTime())
-                    && !currentTime.isAfter(openingHours.getCloseTime());
-        }
-
-        DayOfWeek currentDay = LocalDate.now().getDayOfWeek();
-
-        OpeningHours openingHours =
-                openingHoursRepository.findByDayOfWeek(currentDay)
-                        .orElse(null);
-
-        if (openingHours == null || !openingHours.isActive()) {
-            return false;
-        }
-
-        return !currentTime.isBefore(openingHours.getOpenTime())
-                && !currentTime.isAfter(openingHours.getCloseTime());
+        return isOpenAt(LocalDateTime.now());
     }
 
     public NextOpeningDto getNextOpening() {
@@ -152,5 +126,32 @@ public class OpeningHoursService {
 
     public void deleteHolidayOpeningHours(Long id) {
         holidayOpeningHoursRepository.deleteById(id);
+    }
+
+    // ISSUE #154
+    public boolean isOpenAt(LocalDateTime dateTime) {
+        LocalDate date = dateTime.toLocalDate();
+        LocalTime time = dateTime.toLocalTime();
+
+        //Tjek om det er helligdag
+        Optional<HolidayOpeningHours> holidayOpeningHours = holidayOpeningHoursRepository.findByDate(date);
+
+        if (holidayOpeningHours.isPresent()) {
+            HolidayOpeningHours openingHours = holidayOpeningHours.get();
+
+            if (!openingHours.isActive()) {
+                return false;
+            }
+
+            return !time.isBefore(openingHours.getOpenTime()) && !time.isAfter(openingHours.getCloseTime());
+        }
+
+        OpeningHours openingHours = openingHoursRepository.findByDayOfWeek(date.getDayOfWeek()).orElse(null);
+
+        if (openingHours == null || !openingHours.isActive()) {
+            return false;
+        }
+
+        return !time.isBefore(openingHours.getOpenTime()) && !time.isAfter(openingHours.getCloseTime());
     }
 }
