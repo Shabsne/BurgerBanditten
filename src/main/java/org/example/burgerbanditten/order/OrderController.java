@@ -1,12 +1,15 @@
 package org.example.burgerbanditten.order;
 
+import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/api/orders")
 public class OrderController {
 
     private final OrderService orderService;
@@ -39,5 +42,13 @@ public class OrderController {
     @GetMapping("/active")
     public ResponseEntity<List<Order>> getActiveOrders() {
         return ResponseEntity.ok(orderService.getActiveOrders());
+    }
+
+    @GetMapping("/statistics")
+    public ResponseEntity<SalesStatisticsDto> getSalesStatistics(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return ResponseEntity.ok(orderService.getSalesStatistics(from, to));
     }
 }
