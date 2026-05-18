@@ -319,3 +319,399 @@ input.success {
     pointer-events: none;
     z-index: 0;
 }
+
+/* ── Overlay bag drawer ─────────────────────────────── */
+.cart-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+.cart-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ── Drawer ─────────────────────────────────────────── */
+.cart-drawer {
+    position: fixed;
+    top: 0;
+    right: -440px;
+    width: 420px;
+    max-width: 100vw;
+    height: 100dvh;
+    background: #111010;
+    color: #F0EDE8;
+    z-index: 201;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.6);
+}
+.cart-drawer.open {
+    right: 0;
+}
+
+/* ── Drawer header ──────────────────────────────────── */
+.cart-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.4rem 1.5rem;
+    border-bottom: 1px solid #2E2C2B;
+    flex-shrink: 0;
+}
+.cart-drawer-title {
+    font-family: 'Bebas Neue', 'Impact', sans-serif;
+    font-size: 1.75rem;
+    letter-spacing: 0.05em;
+    color: #F0EDE8;
+    margin: 0;
+    line-height: 1;
+}
+.cart-drawer-title span {
+    color: #E8281E;
+}
+.cart-close-btn {
+    background: none;
+    border: 1px solid #2E2C2B;
+    color: #7A7673;
+    font-size: 1rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    flex-shrink: 0;
+}
+.cart-close-btn:hover {
+    color: #F0EDE8;
+    border-color: #F0EDE8;
+    background: rgba(240, 237, 232, 0.06);
+}
+
+/* ── Varer-liste ─────────────────────────────────────── */
+.cart-drawer-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    scrollbar-width: thin;
+    scrollbar-color: #2E2C2B transparent;
+}
+.cart-drawer-items::-webkit-scrollbar {
+    width: 4px;
+}
+.cart-drawer-items::-webkit-scrollbar-thumb {
+    background: #2E2C2B;
+    border-radius: 2px;
+}
+
+/* ── Tom kurv ────────────────────────────────────────── */
+.cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 0.75rem;
+    color: #7A7673;
+    text-align: center;
+    padding: 2rem;
+}
+.cart-empty-icon {
+    font-size: 3.5rem;
+    filter: grayscale(0.3);
+}
+.cart-empty p {
+    font-size: 1rem;
+    margin: 0;
+    color: #F0EDE8;
+    font-weight: 500;
+}
+.cart-empty small {
+    font-size: 0.82rem;
+    color: #7A7673;
+}
+
+/* ── Enkelt vare ────────────────────────────────────── */
+.cart-item {
+    background: #1A1918;
+    border: 1px solid #2E2C2B;
+    border-radius: 12px;
+    padding: 0.875rem;
+    display: flex;
+    gap: 0.875rem;
+    align-items: center;
+    animation: cartItemSlideIn 0.25s ease;
+    transition: border-color 0.2s;
+}
+.cart-item:hover {
+    border-color: #3a3836;
+}
+@keyframes cartItemSlideIn {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.cart-item-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+.cart-item-img-placeholder {
+    width: 60px;
+    height: 60px;
+    background: #242221;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    border: 1px solid #2E2C2B;
+}
+
+.cart-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+.cart-item-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #F0EDE8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cart-item-price {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #E8281E;
+}
+.cart-item-unit-price {
+    font-size: 0.73rem;
+    color: #7A7673;
+}
+
+.cart-item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+.cart-item-qty-badge {
+    background: #242221;
+    border: 1px solid #2E2C2B;
+    color: #F0EDE8;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 99px;
+}
+.cart-remove-btn {
+    background: none;
+    border: none;
+    color: #7A7673;
+    cursor: pointer;
+    font-size: 0.85rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background 0.2s;
+}
+.cart-remove-btn:hover {
+    color: #FF5C5C;
+    background: rgba(255, 92, 92, 0.1);
+}
+
+/* ── Footer med total + kassen-knap ─────────────────── */
+.cart-drawer-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #2E2C2B;
+    background: #111010;
+    flex-shrink: 0;
+}
+.cart-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+.cart-total-label {
+    font-size: 0.82rem;
+    color: #7A7673;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.cart-total-amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.03em;
+    color: #F0EDE8;
+}
+
+.cart-checkout-btn {
+    width: 100%;
+    height: 52px;
+    background: #E8281E;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    transition: background 0.2s, transform 0.1s;
+}
+.cart-checkout-btn:hover  { background: #C41F16; }
+.cart-checkout-btn:active { transform: scale(0.99); }
+
+/* ── Flydende kurv-knap ──────────────────────────────── */
+.cart-float-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #E8281E;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 20px rgba(232, 40, 30, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cart-float-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 28px rgba(232, 40, 30, 0.55),
+    0 3px 10px rgba(0, 0, 0, 0.35);
+}
+.cart-float-btn:active {
+    transform: scale(0.97);
+}
+
+/* ── Badge (antal varer) ─────────────────────────────── */
+.cart-count-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: white;
+    color: #E8281E;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 99px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    animation: badgePop 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+@keyframes badgePop {
+    0%   { transform: scale(0.6); }
+    70%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* ── Toast notifikation ──────────────────────────────── */
+.cart-toast {
+    position: fixed;
+    bottom: 7rem;
+    right: 2rem;
+    background: #1A1918;
+    color: #F0EDE8;
+    border: 1px solid #2E2C2B;
+    border-left: 3px solid #4CAF7D;
+    border-radius: 8px;
+    padding: 0.75rem 1.1rem;
+    font-size: 0.87rem;
+    z-index: 300;
+    transform: translateX(calc(100% + 3rem));
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.cart-toast.show {
+    transform: translateX(0);
+}
+
+/* ── "Tilføj til kurven" knap i produktkort ─────────── */
+.btn-add-cart {
+    width: 100%;
+    padding: 11px 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #222;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+}
+.btn-add-cart:hover {
+    background-color: #E8281E;
+}
+.btn-add-cart:active {
+    transform: scale(0.98);
+}
+.btn-add-cart.adding {
+    background-color: #4CAF7D;
+    pointer-events: none;
+}
+
+/* ── Responsivt ──────────────────────────────────────── */
+@media (max-width: 480px) {
+    .cart-drawer {
+        width: 100vw;
+        border-radius: 0;
+    }
+    .cart-float-btn {
+        width: 56px;
+        height: 56px;
+        bottom: 1.25rem;
+        right: 1.25rem;
+    }
+    .cart-toast {
+        bottom: 6rem;
+        right: 1.25rem;
+        max-width: calc(100vw - 2.5rem);
+    }
+}

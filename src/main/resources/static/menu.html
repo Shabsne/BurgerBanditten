@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Menu</title>
+    <title>Menu – BurgerBanditten</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body class="bg-glow">
+
 <h1>Menu</h1>
 
 <h2>Burgers</h2>
@@ -20,7 +21,33 @@
 <div id="modal" class="modal"></div>
 <div id="update-modal" class="modal"></div>
 
-<script src="/js/menu.js"></script>
+<div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
 
+<div id="cart-drawer" class="cart-drawer">
+    <div class="cart-drawer-header">
+        <h3 class="cart-drawer-title">Din <span>Kurv</span></h3>
+        <button class="cart-close-btn" onclick="toggleCart()">&times;</button>
+    </div>
+
+    <div id="cart-drawer-items" class="cart-drawer-items"></div>
+
+    <div class="cart-drawer-footer">
+        <div class="cart-total-row">
+            <span class="cart-total-label">Total:</span>
+            <span class="cart-total-amount"><span id="cart-total">0</span> kr.</span>
+        </div>
+        <button class="cart-checkout-btn" onclick="checkout()">Bestil mad</button>
+    </div>
+</div>
+
+<button class="cart-float-btn" onclick="toggleCart()">
+    🛒
+    <span id="cart-count" class="cart-count-badge">0</span>
+</button>
+
+<div id="cart-toast" class="cart-toast">Tilføjet til kurven! 🍔</div>
+
+<script src="/js/cart.js"></script>
+<script src="/js/menu.js"></script>
 </body>
 </html>

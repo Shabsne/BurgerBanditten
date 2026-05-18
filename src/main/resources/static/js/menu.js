@@ -38,31 +38,25 @@ function renderMenu(products) {
 
 function renderProducts(products, containerId) {
     const container = document.getElementById(containerId);
-
-    console.log(containerId);
-    console.log(container);
+    if (!container) return;
 
     container.innerHTML = "";
-
     products.forEach(product => {
-
         container.innerHTML += `
-            <div class="product-card">
-            
-            <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover">
-            
-
+        <div class="product-card">
+            <img src="${product.image || 'https://via.placeholder.com/280x200?text=BurgerBanditten'}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover">
             <h3>${product.name}</h3>
+            <p>${product.description}</p> 
+            <p>${product.price} kr.</p> 
             
-            <p>${product.description}</p>
+            <button onclick="showProduct(${product.id})">Se mere</button> 
             
-            <p>${product.price} kr.</p>
+            <button class="btn-add-cart" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">Tilføj til kurv</button>
             
-            <button onclick="showProduct(${product.id})">Se mere</button>
-            <button id="admin-button" style="display: none" onclick="showUpdateModal(${product.id})">Rediger</button>
-            <button id="admin-button" style="display: none" onclick="deleteProduct(${product.id})">Slet</button>
-        </div>`
-    })
+            <button id="admin-button" style="display: none" onclick="showUpdateModal(${product.id})">Rediger</button> 
+            <button id="admin-button" style="display: none" onclick="deleteProduct(${product.id})">Slet</button> 
+        </div>`;
+    });
 }
 
 async function showProduct(id) {
@@ -262,21 +256,15 @@ async function deleteProduct(id) {
 }
 
 async function checkAdmin() {
-
     try {
         const response = await fetch("/api/users/is-admin");
+        if (!response.ok) return; // Stop her, hvis vi får en 403 eller 500 fejl
 
         const isAdmin = await response.json();
-
         if (isAdmin) {
-
-            document.getElementById("admin-button").style.display = "block";
-        }
-
+            document.querySelectorAll(".admin-button").forEach(btn => btn.style.display = "inline-block");        }
     } catch (error) {
-
-        console.error(error);
-
+        console.error("Fejl ved tjek af admin-status:", error);
     }
 }
 

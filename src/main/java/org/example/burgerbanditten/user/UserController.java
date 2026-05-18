@@ -72,13 +72,11 @@ public class UserController {
 
     @GetMapping("/is-admin")
     public ResponseEntity<Boolean> isAdmin(Authentication authentication) {
-
-        boolean isAdmin = authentication.getAuthorities()
-                .stream()
-                .anyMatch(authority ->
-                        authority.getAuthority()
-                                .equals("ADMIN"));
-
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getName().equals("anonymousUser")) {
+            return ResponseEntity.ok(false);
+        }
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
         return ResponseEntity.ok(isAdmin);
     }
 }

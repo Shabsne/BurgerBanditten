@@ -6,13 +6,28 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/api/orders") // RETTET: Tilføjet /api så det matcher frontend og security
 public class OrderController {
 
     private final OrderService orderService;
 
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
+    }
+
+    // Modtag gæstebestilling via checkout
+    @PostMapping("/guest/checkout")
+    public ResponseEntity<?> guestCheckout(@RequestBody List<Object> cartItems) {
+        // Logik til at håndtere gæstebestilling via din orderService
+        // F.eks: orderService.createGuestOrder(cartItems);
+        return ResponseEntity.ok().body("Gæsteordre modtaget");
+    }
+
+    // Modtag logget ind bruger bestilling via checkout
+    @PostMapping("/checkout")
+    public ResponseEntity<?> userCheckout(@RequestBody List<Object> cartItems) {
+        // Logik til at håndtere brugerbestilling via din orderService
+        return ResponseEntity.ok().body("Brugerordre modtaget");
     }
 
     // #124 – Endpoint som admin kalder for at acceptere en ordre
