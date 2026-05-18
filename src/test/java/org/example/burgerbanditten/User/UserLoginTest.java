@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.User;
 
-import org.example.burgerbanditten.Email.EmailService;
+import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.user.Role;
 import org.example.burgerbanditten.user.User;
 import org.example.burgerbanditten.user.UserRepository;
@@ -43,7 +43,7 @@ class UserLoginTest {
         eksisterendeBruger.setName("Anders Jensen");
         eksisterendeBruger.setMail("anders@gmail.com");
         eksisterendeBruger.setPassword("password123");
-        eksisterendeBruger.setRole(Role.Customer);
+        eksisterendeBruger.setRole(Role.CUSTOMER);
     }
 
     // ── Login tests ──────────────────────────────────────

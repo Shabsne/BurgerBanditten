@@ -1,13 +1,11 @@
 package org.example.burgerbanditten;
 
-import org.example.burgerbanditten.Ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.Ingredient;
 import org.example.burgerbanditten.Ingredient.IngredientRepository;
 import org.example.burgerbanditten.user.Role;
 import org.example.burgerbanditten.user.User;
 import org.example.burgerbanditten.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Configuration;
 import org.example.burgerbanditten.product.Category;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;

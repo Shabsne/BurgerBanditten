@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.product;
 
-import org.example.burgerbanditten.Ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.Ingredient;
 import org.example.burgerbanditten.Ingredient.IngredientRepository;
 import org.springframework.stereotype.Service;
 
