@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/products")
 public class ProductController {
 
     private final ProductService service;
