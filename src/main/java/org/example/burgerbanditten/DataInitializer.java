@@ -1,7 +1,7 @@
 package org.example.burgerbanditten;
 
-import org.example.burgerbanditten.Ingredient.Ingredient;
-import org.example.burgerbanditten.Ingredient.IngredientRepository;
+import org.example.burgerbanditten.ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.IngredientRepository;
 import org.example.burgerbanditten.user.Role;
 import org.example.burgerbanditten.user.User;
 import org.example.burgerbanditten.user.UserRepository;

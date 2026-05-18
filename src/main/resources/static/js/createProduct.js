@@ -2,7 +2,7 @@ async function loadCategories() {
 
     try {
         const response =
-            await fetch("/categories");
+            await fetch("/api/products/categories");
 
         if (!response.ok) {
             throw new Error("Could not fetch categories");
@@ -31,7 +31,7 @@ async function loadIngredients() {
 
     try {
 
-        const response = await fetch("/ingredients");
+        const response = await fetch("/api/products/ingredients");
 
         if (!response.ok) {
             throw new Error("Could not fetch ingredients")
@@ -94,7 +94,7 @@ async function createProduct(event) {
 
     try {
 
-        const response = await fetch("/admin/product/create", {
+        const response = await fetch("/api/products/admin/product/create", {
 
             method: "POST",
 

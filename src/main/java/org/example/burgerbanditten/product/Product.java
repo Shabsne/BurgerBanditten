@@ -35,7 +35,7 @@ public class Product {
     )
     private List<Ingredient> ingredients = new ArrayList<>();
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String image;
 
     public Product() {}
