@@ -72,7 +72,7 @@ public final class DataInitializer implements CommandLineRunner {
                 25.0,
                 false,
                 Category.DRINK,
-                null
+                List.of()
         );
 
         productRepository.saveAll(List.of(cheeseBurger, cola));

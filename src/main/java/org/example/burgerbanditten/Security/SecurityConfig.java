@@ -57,6 +57,9 @@ import org.springframework.security.web.SecurityFilterChain;
 
                             .requestMatchers("/api/users/is-admin").permitAll()
 
+                            .requestMatchers(HttpMethod.GET, "/api/ingredients/**").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/api/ingredients/**").hasRole("ADMIN")
+
                             .requestMatchers(HttpMethod.GET,
                                     "/menu",
                                     "/product/**",
