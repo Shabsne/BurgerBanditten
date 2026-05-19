@@ -16,7 +16,7 @@ jobs:
 
       # Krav: Opsætning af Java 25
       - name: Set up JDK 25
-        uses: actions-setup-java@3a42ae2a8742cb52dfc5e0da8e2be359850c95a3
+        uses: actions/setup-java@3a42ae2a8742cb52dfc5e0da8e2be359850c95a3
         with:
           java-version: '25'
           distribution: 'temurin'
