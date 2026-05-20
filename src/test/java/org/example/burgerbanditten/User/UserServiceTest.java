@@ -35,7 +35,7 @@ public class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(passwordEncoder.encode(any())).thenReturn("hashedPassword");  // ← tilføj
+        lenient().when(passwordEncoder.encode(any())).thenReturn("hashedPassword");  // ← tilføj
 
         validUser = new User();
         validUser.setName("Anders Jensen");
