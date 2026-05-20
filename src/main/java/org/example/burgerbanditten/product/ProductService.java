@@ -3,7 +3,6 @@ package org.example.burgerbanditten.product;
 import org.example.burgerbanditten.ingredient.Ingredient;
 import org.example.burgerbanditten.ingredient.IngredientRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -12,6 +11,8 @@ public class ProductService {
     private final IngredientRepository ingredientRepository;
     private final ProductMapper mapper;
 
+    // RETTET: Den ødelagte linje "private final UpdateProduc" er fjernet herfra
+
     public ProductService(ProductRepository repository, IngredientRepository ingredientRepository, ProductMapper mapper) {
         this.repository = repository;
         this.ingredientRepository = ingredientRepository;
@@ -19,7 +20,6 @@ public class ProductService {
     }
 
     public List<ProductCardDTO> getProducts() {
-
         return repository.findAll()
                 .stream()
                 .map(mapper::toCardDTO)
@@ -28,35 +28,26 @@ public class ProductService {
 
     public ProductDetailsDTO getProduct(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Product not found"));
-
-        return mapper.toDetailsDTO(product);
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        return mapper.toDetailsDTO(product); // Nu kompatibel med ProductDetailsDTO
     }
 
     public ProductDetailsDTO createProduct(CreateProductDTO dto) {
-
         Product product = new Product();
-
         product.setName(dto.name());
         product.setDescription(dto.description());
         product.setPrice(dto.price());
         product.setLunchOffer(dto.lunchOffer());
         product.setCategory(dto.category());
-
-
         List<Ingredient> ingredients = ingredientRepository.findAllById(dto.ingredients());
         product.setIngredients(ingredients);
-
         product.setImage(dto.image());
 
         Product savedProduct = repository.save(product);
-
-        return mapper.toDetailsDTO(savedProduct);
+        return mapper.toDetailsDTO(savedProduct); // Nu kompatibel med ProductDetailsDTO
     }
 
-    public ProductDetailsDTO updateProduct(Long id, UpdateProductDTO dto) {
-
+    public UpdateProductDTO updateProduct(Long id, UpdateProductDTO dto) {
         Product product = repository.findById(id).orElseThrow(() ->
                 new RuntimeException("Product not found"));
 
@@ -65,7 +56,6 @@ public class ProductService {
         product.setPrice(dto.price());
         product.setLunchOffer(dto.lunchOffer());
         product.setCategory(dto.category());
-
         List<Ingredient> ingredients = ingredientRepository.findAllById(dto.ingredients());
         product.setIngredients(ingredients);
 
@@ -74,8 +64,7 @@ public class ProductService {
         }
 
         Product updatedProduct = repository.save(product);
-
-        return mapper.toDetailsDTO(updatedProduct);
+        return mapper.toUpdateDTO(updatedProduct); // Kalder den nye toUpdateDTO metode
     }
 
     public void deleteProduct(Long id) {
@@ -84,7 +73,5 @@ public class ProductService {
 
     public List<Ingredient> getIngredients() {
         return ingredientRepository.findAll();
-
     }
-
 }

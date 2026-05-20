@@ -3,216 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BurgerBanditten – Opret Konto</title>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-  <!-- Link til ekstern CSS -->
-  <link rel="stylesheet" href="style.css">
+  <title>BurgerBanditten – Opret konto</title>
+  <link rel="icon" href="data:,">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/burger.css">
 </head>
-<body>
+<body class="bg-glow page-center">
 
-<div class="card">
+<div class="card register-card fade-up">
 
-  <!-- Logo -->
   <div class="logo">Burger<span>Banditten</span></div>
   <div class="subtitle">Opret din konto</div>
 
-  <!-- Success banner -->
   <div class="success-banner" id="successBanner">
-    ✓ Konto oprettet! Tjek din email for bekræftelse.
+    ✓ Konto oprettet! Du bliver omdirigeret til menuen.
   </div>
 
-    <form id="registerForm" novalidate>
+  <form id="registerForm" novalidate>
 
-      <div class="form-group">
-        <label for="name">Fuldt navn</label>
-        <input type="text" id="name" placeholder="Eks. Anders Jensen" autocomplete="name"/>
-        <div class="error-msg" id="nameError"></div>
+    <div class="form-group">
+      <label for="name">Fuldt navn</label>
+      <input type="text" id="name" placeholder="Eks. Anders Jensen" autocomplete="name">
+      <div class="error-msg" id="nameError"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Eks. anders@email.dk" autocomplete="email">
+      <div class="error-msg" id="emailError"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Adgangskode</label>
+      <input type="password" id="password" placeholder="Minimum 8 tegn" autocomplete="new-password">
+      <div class="strength-bar" id="strengthBar">
+        <span></span><span></span><span></span>
       </div>
+      <div class="strength-label" id="strengthLabel"></div>
+      <div class="error-msg" id="passwordError"></div>
+    </div>
 
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Eks. anders@email.dk" autocomplete="email"/>
-        <div class="error-msg" id="emailError"></div>
-      </div>
+    <div class="form-group">
+      <label for="confirmPassword">Bekræft adgangskode</label>
+      <input type="password" id="confirmPassword" placeholder="Gentag adgangskode" autocomplete="new-password">
+      <div class="error-msg" id="confirmError"></div>
+    </div>
 
-      <div class="form-group">
-        <label for="password">Adgangskode</label>
-        <input type="password" id="password" placeholder="Minimum 8 tegn" autocomplete="new-password"/>
-        <div class="strength-bar" id="strengthBar">
-          <span></span><span></span><span></span>
-        </div>
-        <div class="strength-label" id="strengthLabel"></div>
-        <div class="error-msg" id="passwordError"></div>
-      </div>
+    <button type="submit" class="btn-primary" id="submitBtn">
+      <div class="spinner"></div>
+      <span class="btn-text">Opret konto</span>
+    </button>
 
-      <div class="form-group">
-        <label for="confirmPassword">Bekræft adgangskode</label>
-        <input type="password" id="confirmPassword" placeholder="Gentag adgangskode" autocomplete="new-password"/>
-        <div class="error-msg" id="confirmError"></div>
-      </div>
+  </form>
 
-      <button type="submit" class="btn-primary" id="submitBtn">
-        <div class="spinner"></div>
-        <span class="btn-text">Opret konto</span>
-      </button>
+  <div class="divider">eller</div>
 
-    </form>
-
-    <div class="divider">eller</div>
-
-  <!-- Sekundær handling -->
-  <div class="login-link">
-    Har du allerede en konto? <a href="/login">Log ind her</a>
+  <div class="auth-footer">
+    Har du allerede en konto? <a href="/login.html">Log ind her</a>
   </div>
+
 </div>
 
-<script>
-  // Script logik bibeholdes her da det er sidespecifikt
-  const form = document.getElementById('registerForm');
-  const nameInput = document.getElementById('name');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const confirmInput = document.getElementById('confirmPassword');
-  const submitBtn = document.getElementById('submitBtn');
-  const successBanner = document.getElementById('successBanner');
-
-  // ── Adgangskode styrke ──────────────────────────────
-  passwordInput.addEventListener('input', () => {
-    const val = passwordInput.value;
-    const bar = document.getElementById('strengthBar');
-    const label = document.getElementById('strengthLabel');
-
-    if (val.length === 0) {
-      bar.className = 'strength-bar';
-      label.textContent = '';
-      return;
-    }
-
-    let score = 0;
-    if (val.length >= 8) score++;
-    if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
-    if (/[^A-Za-z0-9]/.test(val)) score++;
-
-    if (score === 1) { bar.className = 'strength-bar weak';   label.textContent = 'Svag'; }
-    if (score === 2) { bar.className = 'strength-bar medium';  label.textContent = 'Medium'; }
-    if (score === 3) { bar.className = 'strength-bar strong';  label.textContent = 'Stærk'; }
-  });
-
-  // ── Hjælpefunktioner ────────────────────────────────
-  function setError(input, msgEl, message) {
-    input.classList.add('error');
-    input.classList.remove('success');
-    msgEl.textContent = message;
-    msgEl.classList.add('visible');
-  }
-
-  function setSuccess(input, msgEl) {
-    input.classList.remove('error');
-    input.classList.add('success');
-    msgEl.classList.remove('visible');
-  }
-
-  function clearState(input, msgEl) {
-    input.classList.remove('error', 'success');
-    msgEl.classList.remove('visible');
-  }
-
-  // ── Live validering (UX: feedback mens man skriver) ──
-  nameInput.addEventListener('blur', () => {
-    const nameError = document.getElementById('nameError');
-    if (nameInput.value.trim().length < 2) {
-      setError(nameInput, nameError, 'Navn skal udfyldes');
-    } else {
-      setSuccess(nameInput, nameError);
-    }
-  });
-
-  emailInput.addEventListener('blur', () => {
-    const emailError = document.getElementById('emailError');
-    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
-    if (!valid) {
-      setError(emailInput, emailError, 'Indtast en gyldig email');
-    } else {
-      setSuccess(emailInput, emailError);
-    }
-  });
-
-  confirmInput.addEventListener('blur', () => {
-    const confirmError = document.getElementById('confirmError');
-    if (confirmInput.value !== passwordInput.value) {
-      setError(confirmInput, confirmError, 'Adgangskoderne stemmer ikke overens');
-    } else {
-      setSuccess(confirmInput, confirmError);
-    }
-  });
-
-  // ── Indsendelse ─────────────────────────────────────
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const nameError     = document.getElementById('nameError');
-    const emailError    = document.getElementById('emailError');
-    const passwordError = document.getElementById('passwordError');
-    const confirmError  = document.getElementById('confirmError');
-
-    let valid = true;
-
-    if (nameInput.value.trim().length < 2) {
-      setError(nameInput, nameError, 'Navn skal udfyldes'); valid = false;
-    }
-
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
-    if (!emailOk) {
-      setError(emailInput, emailError, 'Indtast en gyldig email'); valid = false;
-    }
-
-    if (passwordInput.value.length < 8) {
-      setError(passwordInput, passwordError, 'Adgangskode skal være mindst 8 tegn'); valid = false;
-    }
-
-    if (confirmInput.value !== passwordInput.value) {
-      setError(confirmInput, confirmError, 'Adgangskoderne stemmer ikke overens'); valid = false;
-    }
-
-    if (!valid) return;
-
-    // Loading state
-    submitBtn.classList.add('loading');
-
-    try {
-      const response = await fetch('/api/users/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: nameInput.value.trim(),
-          mail: emailInput.value.trim(),
-          password: passwordInput.value
-        })
-      });
-
-      if (response.ok) {
-        // Vis success og nulstil form
-        successBanner.style.display = 'block';
-        form.reset();
-        [nameInput, emailInput, passwordInput, confirmInput].forEach(i => {
-          i.classList.remove('success', 'error');
-        });
-        document.getElementById('strengthBar').className = 'strength-bar';
-        document.getElementById('strengthLabel').textContent = '';
-      } else {
-        const msg = await response.text();
-        // Vis serverfejl under email feltet
-        setError(emailInput, emailError, msg);
-      }
-
-    } catch (err) {
-      setError(emailInput, emailError, 'Noget gik galt – prøv igen');
-    } finally {
-      submitBtn.classList.remove('loading');
-    }
-  });
-</script>
-
+<script src="/js/register.js"></script>
 </body>
 </html>

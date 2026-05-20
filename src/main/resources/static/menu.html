@@ -1,28 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da">
 <head>
     <meta charset="UTF-8">
-    <title>Menu</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu – BurgerBanditten</title>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/burger.css">
 </head>
-<body>
-<h1>Menu</h1>
+<body class="bg-glow">
 
-<h2>Burgers</h2>
-<div id="burger-container"></div>
+<!-- Topbar -->
+<header class="topbar">
+    <div class="topbar-logo">Burger<span>Banditten</span></div>
+    <div class="topbar-actions">
+        <a id="admin-link" href="/admin.html" class="btn-sm hidden">⚙ Admin</a>
+        <button id="logout-btn" class="btn-sm hidden" onclick="doLogout()">Log ud</button>
+        <a id="login-btn" href="/login.html" class="btn-sm">Log ind</a>
+    </div>
+</header>
 
-<h2>Drinks</h2>
-<div id="drink-container"></div>
+<!-- Burgere -->
+<h2 class="menu-section-header">Burgere</h2>
+<div id="burger-container" class="products-grid"></div>
 
-<h2>Sides</h2>
-<div id="side-container"></div>
+<!-- Drinks -->
+<h2 class="menu-section-header">Drinks</h2>
+<div id="drink-container" class="products-grid"></div>
 
-<div id="modal" class="modal"></div>
-<div id="update-modal" class="modal"></div>
+<!-- Sides -->
+<h2 class="menu-section-header">Sides</h2>
+<div id="side-container" class="products-grid"></div>
+
+<!-- Produkt-detaljer modal -->
+<div class="modal-overlay" id="modal">
+    <div class="modal-box" id="modal-content"></div>
+</div>
+
+<!-- Rediger produkt modal (kun admin) -->
+<div class="modal-overlay" id="update-modal">
+    <div class="modal-box" id="update-modal-content"></div>
+</div>
+
+<!-- Cart -->
+<div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
+
+<div id="cart-drawer" class="cart-drawer">
+    <div class="cart-drawer-header">
+        <div class="cart-drawer-title">Din <span>Kurv</span></div>
+        <button class="cart-close-btn" onclick="toggleCart()">&times;</button>
+    </div>
+    <div id="cart-drawer-items" class="cart-drawer-items"></div>
+    <div class="cart-drawer-footer">
+        <div class="cart-total-row">
+            <span class="cart-total-label">Total</span>
+            <span class="cart-total-amount"><span id="cart-total">0</span> kr.</span>
+        </div>
+        <button class="cart-checkout-btn" onclick="checkout()">Bestil mad →</button>
+    </div>
+</div>
+
+<button class="cart-float-btn" onclick="toggleCart()">
+    🛒
+    <span id="cart-count" class="cart-count-badge">0</span>
+</button>
+
+<div id="cart-toast" class="cart-toast">Tilføjet til kurven! 🍔</div>
 
 <script src="/js/preorder/preorder-modal.js"></script>
-<script src="/Cart.js"></script>
+<script src="/js/cart.js"></script>
 <script src="/js/menu.js"></script>
-
 </body>
 </html>
