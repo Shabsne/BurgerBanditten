@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,6 +25,9 @@ public class UserServiceTest {
     @Mock
     private EmailService emailService;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserService userService;
 
@@ -31,7 +35,8 @@ public class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Opretter en gyldig bruger som bruges som udgangspunkt i testene
+        when(passwordEncoder.encode(any())).thenReturn("hashedPassword");  // ← tilføj
+
         validUser = new User();
         validUser.setName("Anders Jensen");
         validUser.setMail("anders@gmail.com");
