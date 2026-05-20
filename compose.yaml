@@ -1,4 +1,5 @@
 services:
+  # Service 1: Databasen
   mysql:
     image: 'mysql:8.4'
     environment:
@@ -8,3 +9,17 @@ services:
       - 'MYSQL_USER=ek'
     ports:
       - '127.0.0.1:3307:3306'
+
+  # Service 2: Java App
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    depends_on:
+      - mysql
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/mydb
+      - SPRING_DATASOURCE_USERNAME=ek
+      - SPRING_DATASOURCE_PASSWORD=ek
