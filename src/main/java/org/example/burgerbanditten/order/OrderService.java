@@ -2,36 +2,30 @@ package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.order.dto.GuestOrderRequest;
-import org.example.burgerbanditten.order.dto.ProductSalesDto;
-import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
     private final EmailService emailService;
     private final PreOrderService preOrderService;
+    private final ProductRepository productRepository;
 
     public OrderService(OrderRepository orderRepository,
-                        ProductRepository productRepository,
                         EmailService emailService,
-                        PreOrderService preOrderService) {
+                        PreOrderService preOrderService,
+                        ProductRepository productRepository) {
         this.orderRepository = orderRepository;
-        this.productRepository = productRepository;
-        this.emailService = emailService;
+        this.emailService    = emailService;
         this.preOrderService = preOrderService;
+        this.productRepository = productRepository;
     }
 
     // ── Gæsteordre ─────────────────────────────────────────────────────
@@ -114,26 +108,19 @@ public class OrderService {
         return orderRepository.findByOrderStatus(OrderStatus.PENDING);
     }
 
-    // #126 – Frontend: tab "Aktive"
     public List<Order> getActiveOrders() {
         return orderRepository.findByOrderStatus(OrderStatus.ACCEPTED);
     }
 
     // ── Forudbestilling ─────────────────────────────────────────────────
     public Order createOrderWithPickUpTime(Order order, String pickUpTimeString) {
-        //Gem ordren først
         Order savedOrder = orderRepository.save(order);
-
-        //Hvis der er et forudbestilt tidspunkt, gem det
         if (pickUpTimeString != null && !pickUpTimeString.isEmpty()) {
             try {
-                java.time.LocalDateTime pickUpDateTime =
-                        java.time.LocalDateTime.parse(pickUpTimeString);
-
+                java.time.LocalDateTime pickUpDateTime = java.time.LocalDateTime.parse(pickUpTimeString);
                 preOrderService.savePickUpTime(savedOrder, pickUpDateTime, true);
             } catch (Exception e) {
-                //Log fejl - forudbestilling mislykkedes men ordren er skabt
-                System.err.println("Advarsel: Kunne ikke gemme forudbestilt tidspunkt: " + e.getMessage() );
+                System.err.println("Advarsel: Kunne ikke gemme forudbestilt tidspunkt: " + e.getMessage());
             }
         }
         return savedOrder;
