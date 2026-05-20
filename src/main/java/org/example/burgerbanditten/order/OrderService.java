@@ -1,9 +1,13 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
+import org.example.burgerbanditten.order.dto.GuestOrderRequest;
 import org.example.burgerbanditten.preorder.PreOrderService;
+import org.example.burgerbanditten.product.Product;
+import org.example.burgerbanditten.product.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -12,16 +16,67 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final EmailService emailService;
     private final PreOrderService preOrderService;
+    private final ProductRepository productRepository;
 
-    public OrderService(OrderRepository orderRepository, EmailService emailService, PreOrderService preOrderService) {
+    public OrderService(OrderRepository orderRepository,
+                        EmailService emailService,
+                        PreOrderService preOrderService,
+                        ProductRepository productRepository) {
         this.orderRepository = orderRepository;
-        this.emailService = emailService;
+        this.emailService    = emailService;
         this.preOrderService = preOrderService;
+        this.productRepository = productRepository;
     }
 
-    // #125 – Skift ordrestatus til ACCEPTED
-    // #126 – Ordre er herefter tilgængelig som "aktiv ordre" via getActiveOrders()
-    // #128 – Kast exception hvis ordren allerede er accepteret
+    // ── Gæsteordre ─────────────────────────────────────────────────────
+    // Opretter en rigtig Order i databasen med status PENDING,
+    // så den dukker op på admin-sidens "Ventende"-fane.
+    public Order createGuestOrder(GuestOrderRequest request) {
+
+        // Byg ordre
+        Order order = new Order();
+        order.setOrderStatus(OrderStatus.PENDING);
+
+        // Gem kundenavn og telefon i kommentarfeltet (User er null for gæster)
+        String note = request.customerName();
+        if (request.phone() != null && !request.phone().isBlank()) {
+            note += " · Tlf: " + request.phone();
+        }
+        if (request.comment() != null && !request.comment().isBlank()) {
+            note += " · " + request.comment();
+        }
+        order.setComment(note);
+
+        // Gem ordren først for at få et ID (nødvendigt for FK på OrderItem)
+        Order savedOrder = orderRepository.save(order);
+
+        // Byg ordre-linjer
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (GuestOrderRequest.GuestOrderItem item : request.items()) {
+            Product product = productRepository.findById(item.productId())
+                    .orElseThrow(() -> new RuntimeException(
+                            "Produkt ikke fundet: " + item.productId()));
+
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(savedOrder);
+            orderItem.setProduct(product);
+            orderItem.setQuantity(item.quantity());
+            // Brug produktets aktuelle pris — ikke frontenden's (sikkerhed)
+            orderItem.setPrice(product.getPrice() * item.quantity());
+            orderItems.add(orderItem);
+        }
+
+        // Sæt items og beregn total
+        savedOrder.setOrderItems(orderItems);
+        double total = orderItems.stream()
+                .mapToDouble(OrderItem::getPrice)
+                .sum();
+        savedOrder.setPrice(total);
+
+        return orderRepository.save(savedOrder);
+    }
+
+    // ── Accept ordre ────────────────────────────────────────────────────
     public Order acceptOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
@@ -29,48 +84,43 @@ public class OrderService {
         if (order.getOrderStatus() == OrderStatus.ACCEPTED) {
             throw new IllegalStateException("Ordre #" + orderId + " er allerede accepteret");
         }
-
         if (order.getOrderStatus() != OrderStatus.PENDING) {
             throw new IllegalStateException(
-                    "Kun ventende ordrer kan accepteres. Nuværende status: " + order.getOrderStatus()
-            );
+                    "Kun ventende ordrer kan accepteres. Nuværende status: " + order.getOrderStatus());
         }
 
         order.setOrderStatus(OrderStatus.ACCEPTED);
         Order savedOrder = orderRepository.save(order);
 
-        // #124 (email-del) – Send besked til kunden om at ordren er accepteret
-        String customerEmail = order.getUser().getMail();
-        String customerName  = order.getUser().getName();
-        emailService.sendOrderAcceptedNotification(customerEmail, customerName, order.getId());
+        // Send email kun hvis ordren har en tilknyttet bruger
+        if (order.getUser() != null) {
+            emailService.sendOrderAcceptedNotification(
+                    order.getUser().getMail(),
+                    order.getUser().getName(),
+                    order.getId());
+        }
 
         return savedOrder;
     }
 
-    // Frontend: tab "Ventende"
+    // ── Hent ordrer ─────────────────────────────────────────────────────
     public List<Order> getPendingOrders() {
         return orderRepository.findByOrderStatus(OrderStatus.PENDING);
     }
 
-    // #126 – Frontend: tab "Aktive"
     public List<Order> getActiveOrders() {
         return orderRepository.findByOrderStatus(OrderStatus.ACCEPTED);
     }
 
+    // ── Forudbestilling ─────────────────────────────────────────────────
     public Order createOrderWithPickUpTime(Order order, String pickUpTimeString) {
-        //Gem ordren først
         Order savedOrder = orderRepository.save(order);
-
-        //Hvis der er et forudbestilt tidspunkt, gem det
         if (pickUpTimeString != null && !pickUpTimeString.isEmpty()) {
             try {
-                java.time.LocalDateTime pickUpDateTime =
-                        java.time.LocalDateTime.parse(pickUpTimeString);
-
+                java.time.LocalDateTime pickUpDateTime = java.time.LocalDateTime.parse(pickUpTimeString);
                 preOrderService.savePickUpTime(savedOrder, pickUpDateTime, true);
             } catch (Exception e) {
-                //Log fejl - forudbestilling mislykkedes men ordren er skabt
-                System.err.println("Advarsel: Kunne ikke gemme forudbestilt tidspunkt: " + e.getMessage() );
+                System.err.println("Advarsel: Kunne ikke gemme forudbestilt tidspunkt: " + e.getMessage());
             }
         }
         return savedOrder;

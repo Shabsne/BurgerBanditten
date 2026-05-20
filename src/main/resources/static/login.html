@@ -4,154 +4,73 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BurgerBanditten – Log ind</title>
+  <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css">
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .page-content {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-
-    .card { max-width: 440px; width: 100%; }
-
-    .forgot-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .forgot-link {
-      font-size: 0.78rem;
-      color: var(--red);
-      cursor: pointer;
-    }
-
-    .forgot-link:hover { text-decoration: underline; }
-
-    .register-link {
-      text-align: center;
-      font-size: 0.88rem;
-      color: var(--muted);
-      margin-top: 1.25rem;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-
-    .modal-overlay.visible { display: flex; }
-
-    .modal {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 2rem;
-      width: 100%;
-      max-width: 400px;
-      animation: fadeUp 0.3s ease both;
-    }
-
-    .modal h2 { font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem; }
-    .modal p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem; }
-
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 1.2rem;
-      cursor: pointer;
-      float: right;
-      margin-top: -0.5rem;
-    }
-
-    .success-msg {
-      font-size: 0.85rem;
-      color: var(--success);
-      margin-top: 0.5rem;
-      display: none;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/burger.css">
 </head>
-<body class="bg-glow">
+<body class="bg-glow page-center">
 
-<div class="page-content">
-  <div class="card fade-up">
-    <div class="logo">Burger<span>Banditten</span></div>
-    <div class="subtitle">Log ind på din konto</div>
+<div class="card auth-card fade-up">
 
-    <form id="loginForm" novalidate>
+  <div class="logo">Burger<span>Banditten</span></div>
+  <div class="subtitle">Log ind på din konto</div>
 
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Eks. anders@email.dk" autocomplete="email"/>
-        <div class="error-msg" id="emailError"></div>
+  <form id="loginForm" novalidate>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Eks. anders@email.dk" autocomplete="email">
+      <div class="error-msg" id="emailError"></div>
+    </div>
+
+    <div class="form-group">
+      <div class="label-row">
+        <label for="password">Adgangskode</label>
+        <span class="label-link" onclick="openForgotModal()">Glemt adgangskode?</span>
       </div>
+      <input type="password" id="password" placeholder="Din adgangskode" autocomplete="current-password">
+      <div class="error-msg" id="passwordError"></div>
+    </div>
 
-      <div class="form-group">
-        <div class="forgot-row">
-          <label for="password" style="margin-bottom:0">Adgangskode</label>
-          <a class="forgot-link" onclick="openForgotModal()">Glemt adgangskode?</a>
-        </div>
-        <input type="password" id="password" placeholder="Din adgangskode" autocomplete="current-password"/>
-        <div class="error-msg" id="passwordError"></div>
-      </div>
-
-      <button type="submit" class="btn-primary" id="submitBtn">
-        <div class="spinner"></div>
-        <span class="btn-text">Log ind</span>
-      </button>
-
-    </form>
-
-    <div class="divider">eller</div>
-
-    <button class="btn-secondary" onclick="window.location.href='/menu.html'">
-      Fortsæt som gæst
+    <button type="submit" class="btn-primary" id="submitBtn">
+      <div class="spinner"></div>
+      <span class="btn-text">Log ind</span>
     </button>
 
-    <div class="register-link">
-      Har du ikke en konto? <a href="/register.html">Opret konto her</a>
-    </div>
+  </form>
+
+  <div class="divider">eller</div>
+
+  <button class="btn-secondary" onclick="window.location.href='/menu.html'">
+    Fortsæt som gæst
+  </button>
+
+  <div class="auth-footer">
+    Har du ikke en konto? <a href="/register.html">Opret konto her</a>
   </div>
+
 </div>
 
 <!-- Glemt adgangskode modal -->
 <div class="modal-overlay" id="forgotModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeForgotModal()">&#x2715;</button>
-    <h2>Glemt adgangskode?</h2>
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Glemt adgangskode?</div>
+      <button class="modal-close" onclick="closeForgotModal()">&times;</button>
+    </div>
     <p>Indtast din email – vi sender dig et link til at nulstille din adgangskode.</p>
     <div class="form-group">
       <label for="forgotEmail">Email</label>
-      <input type="email" id="forgotEmail" placeholder="Din email"/>
+      <input type="email" id="forgotEmail" placeholder="Din email">
       <div class="error-msg" id="forgotEmailError"></div>
     </div>
     <button class="btn-primary" onclick="sendResetLink()">
       <span class="btn-text">Send nulstillingslink</span>
     </button>
-    <div class="success-msg" id="forgotSuccess">
-      ✓ Tjek din email for et nulstillingslink!
-    </div>
+    <div class="success-msg" id="forgotSuccess">✓ Tjek din email for et nulstillingslink!</div>
   </div>
 </div>
 
 <script src="/js/login.js"></script>
-
 </body>
 </html>

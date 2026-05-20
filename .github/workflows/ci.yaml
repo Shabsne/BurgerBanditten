@@ -1,0 +1,28 @@
+name: Java CI with Maven
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Krav: Hash-pinning
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      # Krav: Opsætning af Java 25
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          # Krav: Cache Maven dependencies, så de ikke downloades hver gang
+          cache: 'maven'
+
+      # Krav: Compile og test jeres Java-kode
+      - name: Build and run tests with Maven
+        run: ./mvnw clean test -B

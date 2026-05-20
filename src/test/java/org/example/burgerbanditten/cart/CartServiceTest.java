@@ -1,6 +1,6 @@
 package org.example.burgerbanditten.cart;
 
-import org.example.burgerbanditten.Email.EmailService;
+import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
 import org.junit.jupiter.api.Test;
