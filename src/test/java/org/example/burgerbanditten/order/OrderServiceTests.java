@@ -31,7 +31,7 @@ class OrderServiceTests {
         productRepository = mock(ProductRepository.class);
         emailService     = mock(EmailService.class);
         preOrderService = mock(PreOrderService.class);
-        orderService     = new OrderService(orderRepository, productRepository, emailService, preOrderService);
+        orderService = new OrderService(orderRepository, emailService, productRepository, preOrderService);
     }
 
     // ── Ikke-eksisterende ordre ──────────────────────────
