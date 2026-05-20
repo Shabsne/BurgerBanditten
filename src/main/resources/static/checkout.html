@@ -2,88 +2,54 @@
 <html lang="da">
 <head>
     <meta charset="UTF-8">
-    <title>Gæst Checkout – BurgerBanditten</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout – BurgerBanditten</title>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/burger.css">
 </head>
-<body class="bg-glow">
+<body class="bg-glow page-center">
 
-<div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem;">
-    <div class="card" style="max-width: 500px;">
-        <div class="logo" style="text-align: center; margin-bottom: 0.5rem;">Burger<span>Banditten</span></div>
-        <div class="subtitle" style="text-align: center; margin-bottom: 2rem;">Gæst checkout (Afhentning)</div>
+<div class="card auth-card fade-up">
 
-        <form id="checkoutForm" onsubmit="submitGuestOrder(event)">
-            <div class="form-group">
-                <label for="fullName">Navn</label>
-                <input type="text" id="fullName" placeholder="Indtast dit fulde navn" required>
-            </div>
+    <div class="logo">Burger<span>Banditten</span></div>
+    <div class="subtitle">Gæst checkout — Afhentning</div>
 
-            <div class="form-group">
-                <label for="phone">Telefonnummer</label>
-                <input type="tel" id="phone" placeholder="F.eks. 12345678" required>
-            </div>
+    <form id="checkoutForm" novalidate>
 
-            <div style="margin: 1.5rem 0; padding: 1rem; background: var(--input-bg); border-radius: var(--radius-md);">
-                <div style="display: flex; justify-content: space-between; font-weight: bold;">
-                    <span>Din total:</span>
-                    <span id="checkout-total" style="color: var(--red);">0 kr.</span>
-                </div>
-            </div>
-
-            <button type="submit" id="submitOrderBtn" class="btn-primary">
-                <span class="btn-text">Gennemfør Bestilling</span>
-            </button>
-        </form>
-
-        <div style="text-align: center; margin-top: 1.5rem;">
-            <a href="/menu.html" style="font-size: 0.9rem;">← Tilbage til menuen</a>
+        <div class="form-group">
+            <label for="fullName">Fuldt navn</label>
+            <input type="text" id="fullName" placeholder="Eks. Anders Jensen" autocomplete="name">
+            <div class="error-msg" id="nameError"></div>
         </div>
+
+        <div class="form-group">
+            <label for="phone">Telefonnummer</label>
+            <input type="tel" id="phone" placeholder="Eks. 12 34 56 78" autocomplete="tel">
+            <div class="error-msg" id="phoneError"></div>
+        </div>
+
+        <div class="order-summary">
+            <div id="checkout-items"></div>
+            <div class="order-summary-total">
+                <span>Total</span>
+                <span id="checkout-total">0 kr.</span>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitOrderBtn">
+            <div class="spinner"></div>
+            <span class="btn-text">Gennemfør bestilling</span>
+        </button>
+
+    </form>
+
+    <div class="auth-footer">
+        <a href="/menu.html">← Tilbage til menuen</a>
     </div>
+
 </div>
 
-<script>
-    const cart = JSON.parse(localStorage.getItem('burgerCart')) || [];
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    document.getElementById('checkout-total').innerText = total + " kr.";
-
-    async function submitGuestOrder(event) {
-        event.preventDefault();
-        if (cart.length === 0) {
-            alert("Din kurv er tom!");
-            window.location.href = '/menu.html';
-            return;
-        }
-
-        const submitBtn = document.getElementById('submitOrderBtn');
-        submitBtn.classList.add('loading');
-
-        const orderPayload = {
-            customerName: document.getElementById('fullName').value.trim(),
-            phone: document.getElementById('phone').value.trim(),
-            items: cart
-        };
-
-        try {
-            const response = await fetch('/api/orders/guest/checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderPayload)
-            });
-
-            if (response.ok) {
-                alert("Maden er bestilt til afhentning! Du bliver nu sendt tilbage til menuen.");
-                localStorage.removeItem('burgerCart');
-                window.location.href = '/menu.html';
-            } else {
-                alert("Der skete en fejl under håndteringen af din ordre.");
-            }
-        } catch (error) {
-            console.error("Fejl:", error);
-            alert("Kunne ikke oprette forbindelse til serveren.");
-        } finally {
-            submitBtn.classList.remove('loading');
-        }
-    }
-</script>
+<script src="/js/checkout.js"></script>
 </body>
 </html>
