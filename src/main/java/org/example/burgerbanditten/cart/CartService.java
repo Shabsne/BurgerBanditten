@@ -1,8 +1,9 @@
 package org.example.burgerbanditten.cart;
-
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class CartService {
@@ -14,31 +15,59 @@ public class CartService {
     public CartService(CartRepository cartRepository,
                        ProductRepository productRepository,
                        CartItemRepository cartItemRepository) {
-
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.cartItemRepository = cartItemRepository;
     }
 
+    public Cart getCartByUserId(Long userId) {
+        return cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Kurv ikke fundet for bruger: " + userId));
+    }
+
     public Cart addProductToCart(Long cartId, Long productId, int quantity) {
         Cart cart = cartRepository.findById(cartId)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Kurv ikke fundet: " + cartId));
 
         Product product = productRepository.findById(productId)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Produkt ikke fundet: " + productId));
 
-        CartItem item = new CartItem();
-        item.setCart(cart);
-        item.setProduct(product);
-        item.setQuantity(quantity);
+        Optional<CartItem> existing = cart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst();
 
-        // VIGTIG TILFØJELSE:
-        cart.getCartItems().add(item);
+        if (existing.isPresent()) {
+            CartItem item = existing.get();
+            item.setQuantity(item.getQuantity() + quantity);
+            cartItemRepository.save(item);
+        } else {
+            CartItem item = new CartItem();
+            item.setCart(cart);
+            item.setProduct(product);
+            item.setQuantity(quantity);
+            cart.getCartItems().add(item);
+            cartItemRepository.save(item);
+        }
 
-        cartItemRepository.save(item);
-
-        // Valgfrit: Nogle vælger også at gemme cart igen,
-        // men cartItemRepository.save(item) er vigtigst for databasen.
         return cart;
+    }
+
+    public void removeOrReduceItem(Long cartItemId) {
+        CartItem item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Vare ikke fundet i kurv"));
+
+        if (item.getQuantity() > 1) {
+            item.setQuantity(item.getQuantity() - 1);
+            cartItemRepository.save(item);
+        } else {
+            cartItemRepository.delete(item);
+        }
+    }
+
+    public double calculateTotal(Long userId) {
+        Cart cart = getCartByUserId(userId);
+        return cart.getCartItems().stream()
+                .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
+                .sum();
     }
 }

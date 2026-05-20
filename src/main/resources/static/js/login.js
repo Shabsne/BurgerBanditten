@@ -1,5 +1,7 @@
 // ═══════════════════════════════════════════════════
 // login.js – Logik til login siden
+// FIX: credentials: 'include' på alle fetch-kald så
+//      Spring Security session-cookie sendes med.
 // ═══════════════════════════════════════════════════
 
 const form          = document.getElementById('loginForm');
@@ -34,11 +36,11 @@ async function logout() {
     try {
         const response = await fetch('/api/users/logout', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' }
         });
         if (response.ok) {
-            sessionStorage.removeItem('loggedIn');
-            sessionStorage.removeItem('userRole');
+            sessionStorage.clear();
             window.location.href = '/menu.html';
         }
     } catch (err) {
@@ -77,6 +79,7 @@ form.addEventListener('submit', async (e) => {
     try {
         const response = await fetch('/api/users/login', {
             method: 'POST',
+            credentials: 'include',   // ← KRITISK: sender session-cookie
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 mail:     emailInput.value.trim(),
@@ -85,11 +88,22 @@ form.addEventListener('submit', async (e) => {
         });
 
         if (response.ok) {
+            const user = await response.json();
+
             sessionStorage.setItem('loggedIn', 'true');
-            window.location.href = '/menu.html';
+
+            const userRole = (user.role || user.authority || '').toUpperCase();
+
+            if (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN') {
+                sessionStorage.setItem('userRole', 'ADMIN');
+                window.location.href = '/admin.html';
+            } else {
+                sessionStorage.setItem('userRole', 'CUSTOMER');
+                window.location.href = '/menu.html';
+            }
         } else {
             const msg = await response.text();
-            setError(emailInput, emailError, msg);
+            setError(emailInput, emailError, msg || 'Forkert email eller adgangskode');
             setError(passwordInput, passwordError, ' ');
         }
     } catch (err) {
@@ -124,6 +138,7 @@ async function sendResetLink() {
     try {
         const response = await fetch('/api/users/forgot-password', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mail: forgotEmail.value.trim() })
         });
