@@ -2,13 +2,19 @@ package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.order.dto.GuestOrderRequest;
+import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
+import org.example.burgerbanditten.order.dto.ProductSalesDto;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderService {
