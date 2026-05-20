@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard — Burger Banditten</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Her genbruger vi wireframens flotte og kompakte struktur [cite: 97, 101] */
+    .wf-topbar { background: #1a1a18; color: #D3D1C7; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px;}
+    .wf-topbar-actions span { margin-left: 15px; cursor: pointer; }
+    .wf-nav { display: flex; gap: 10px; margin: 20px 0; }
+    .wf-btn { padding: 10px 20px; background: #eee; border: none; border-radius: 5px; cursor: pointer; }
+    .wf-btn.active { background: #2C2C2A; color: white; }
+    .screen { display: none; }
+    .screen.visible { display: block; }
+    .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #3B6D11; }
+    .action-btn { padding: 8px 12px; cursor: pointer; margin-right: 5px; }
+    .btn-accept { background: #EAF3DE; color: #3B6D11; border: 1px solid #C0DD97; }
+  </style>
+</head>
+<body>
+<div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+  <div class="wf-topbar">
+    <div>⚙ Admin — Burger Banditten</div>
+    <div class="wf-topbar-actions">
+      <span style="color: #4CAF50;">● Åben</span>
+      <span onclick="logout()">Log ud</span>
+    </div>
+  </div>
+
+  <div class="wf-nav">
+    <button class="wf-btn active" onclick="showScreen('adminorders', this)">Ordrer</button>
+    <button class="wf-btn" onclick="showScreen('admincatalog', this)">Katalog</button>
+  </div>
+
+  <div id="screen-adminorders" class="screen visible">
+    <h2>Aktive Ordrer (Ventende)</h2>
+    <div id="pending-orders-container">
+    </div>
+  </div>
+
+  <div id="screen-admincatalog" class="screen">
+    <h2>Produktkatalog</h2>
+    <div id="admin-product-container">
+    </div>
+  </div>
+</div>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>

@@ -85,8 +85,22 @@ form.addEventListener('submit', async (e) => {
         });
 
         if (response.ok) {
+            // RETTET: Henter brugerobjektet fra backenden
+            const user = await response.json();
+
             sessionStorage.setItem('loggedIn', 'true');
-            window.location.href = '/menu.html';
+
+            // Finder rollen uanset om dit felt hedder 'role' eller 'authority' på User-klassen
+            const userRole = (user.role || user.authority || "").toUpperCase();
+
+            // Tjekker om brugeren er admin og viderestiller derefter
+            if (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN') {
+                sessionStorage.setItem('userRole', 'ADMIN');
+                window.location.href = '/admin.html';
+            } else {
+                sessionStorage.setItem('userRole', 'CUSTOMER');
+                window.location.href = '/menu.html';
+            }
         } else {
             const msg = await response.text();
             setError(emailInput, emailError, msg);
