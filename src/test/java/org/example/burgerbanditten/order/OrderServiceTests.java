@@ -100,6 +100,7 @@ class OrderServiceTests {
 
     // ── Hjælper ──────────────────────────────────────────
 
+    // ISSUE #111
     @Test
     void skalReturnereSalgsstatistikForPeriode() {
         Product burger = new Product();
