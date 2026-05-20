@@ -90,20 +90,21 @@ public class OrderService {
         if (order.getOrderStatus() == OrderStatus.ACCEPTED) {
             throw new IllegalStateException("Ordre #" + orderId + " er allerede accepteret");
         }
-
         if (order.getOrderStatus() != OrderStatus.PENDING) {
             throw new IllegalStateException(
-                    "Kun ventende ordrer kan accepteres. Nuværende status: " + order.getOrderStatus()
-            );
+                    "Kun ventende ordrer kan accepteres. Nuværende status: " + order.getOrderStatus());
         }
 
         order.setOrderStatus(OrderStatus.ACCEPTED);
         Order savedOrder = orderRepository.save(order);
 
-        // #124 (email-del) – Send besked til kunden om at ordren er accepteret
-        String customerEmail = order.getUser().getMail();
-        String customerName  = order.getUser().getName();
-        emailService.sendOrderAcceptedNotification(customerEmail, customerName, order.getId());
+        // Send email kun hvis ordren har en tilknyttet bruger
+        if (order.getUser() != null) {
+            emailService.sendOrderAcceptedNotification(
+                    order.getUser().getMail(),
+                    order.getUser().getName(),
+                    order.getId());
+        }
 
         return savedOrder;
     }
