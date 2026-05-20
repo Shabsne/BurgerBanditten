@@ -1,6 +1,7 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
+import org.example.burgerbanditten.order.dto.GuestOrderRequest;
 import org.example.burgerbanditten.order.dto.ProductSalesDto;
 import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
 import org.example.burgerbanditten.preorder.PreOrderService;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,16 +24,65 @@ public class OrderService {
     private final EmailService emailService;
     private final PreOrderService preOrderService;
 
-    public OrderService(OrderRepository orderRepository, ProductRepository productRepository, EmailService emailService, PreOrderService preOrderService) {
+    public OrderService(OrderRepository orderRepository,
+                        ProductRepository productRepository,
+                        EmailService emailService,
+                        PreOrderService preOrderService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.emailService = emailService;
         this.preOrderService = preOrderService;
     }
 
-    // #125 – Skift ordrestatus til ACCEPTED
-    // #126 – Ordre er herefter tilgængelig som "aktiv ordre" via getActiveOrders()
-    // #128 – Kast exception hvis ordren allerede er accepteret
+    // ── Gæsteordre ─────────────────────────────────────────────────────
+    // Opretter en rigtig Order i databasen med status PENDING,
+    // så den dukker op på admin-sidens "Ventende"-fane.
+    public Order createGuestOrder(GuestOrderRequest request) {
+
+        // Byg ordre
+        Order order = new Order();
+        order.setOrderStatus(OrderStatus.PENDING);
+
+        // Gem kundenavn og telefon i kommentarfeltet (User er null for gæster)
+        String note = request.customerName();
+        if (request.phone() != null && !request.phone().isBlank()) {
+            note += " · Tlf: " + request.phone();
+        }
+        if (request.comment() != null && !request.comment().isBlank()) {
+            note += " · " + request.comment();
+        }
+        order.setComment(note);
+
+        // Gem ordren først for at få et ID (nødvendigt for FK på OrderItem)
+        Order savedOrder = orderRepository.save(order);
+
+        // Byg ordre-linjer
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (GuestOrderRequest.GuestOrderItem item : request.items()) {
+            Product product = productRepository.findById(item.productId())
+                    .orElseThrow(() -> new RuntimeException(
+                            "Produkt ikke fundet: " + item.productId()));
+
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(savedOrder);
+            orderItem.setProduct(product);
+            orderItem.setQuantity(item.quantity());
+            // Brug produktets aktuelle pris — ikke frontenden's (sikkerhed)
+            orderItem.setPrice(product.getPrice() * item.quantity());
+            orderItems.add(orderItem);
+        }
+
+        // Sæt items og beregn total
+        savedOrder.setOrderItems(orderItems);
+        double total = orderItems.stream()
+                .mapToDouble(OrderItem::getPrice)
+                .sum();
+        savedOrder.setPrice(total);
+
+        return orderRepository.save(savedOrder);
+    }
+
+    // ── Accept ordre ────────────────────────────────────────────────────
     public Order acceptOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
@@ -57,7 +108,7 @@ public class OrderService {
         return savedOrder;
     }
 
-    // Frontend: tab "Ventende"
+    // ── Hent ordrer ─────────────────────────────────────────────────────
     public List<Order> getPendingOrders() {
         return orderRepository.findByOrderStatus(OrderStatus.PENDING);
     }
@@ -67,6 +118,7 @@ public class OrderService {
         return orderRepository.findByOrderStatus(OrderStatus.ACCEPTED);
     }
 
+    // ── Forudbestilling ─────────────────────────────────────────────────
     public Order createOrderWithPickUpTime(Order order, String pickUpTimeString) {
         //Gem ordren først
         Order savedOrder = orderRepository.save(order);
@@ -86,6 +138,7 @@ public class OrderService {
         return savedOrder;
     }
 
+    // ── Salgsstatistik ─────────────────────────────────────────────────
     public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {
         LocalDateTime fromDateTime = from == null ? null : from.atStartOfDay();
         LocalDateTime toDateTime = to == null ? null : to.plusDays(1).atStartOfDay();

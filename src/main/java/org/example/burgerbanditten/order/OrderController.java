@@ -1,5 +1,6 @@
 package org.example.burgerbanditten.order;
 
+import org.example.burgerbanditten.order.dto.GuestOrderRequest;
 import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +19,28 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    // #124 – Endpoint som admin kalder for at acceptere en ordre
-    // #127 – Returnerer den opdaterede ordre som bekræftelse til admin
+    // POST gæstebestilling — opretter en rigtig ordre med PENDING status
+    // Vises herefter på admin-sidens "Ventende"-fane
+    @PostMapping("/guest/checkout")
+    public ResponseEntity<?> guestCheckout(@RequestBody GuestOrderRequest request) {
+        try {
+            if (request.items() == null || request.items().isEmpty()) {
+                return ResponseEntity.badRequest().body("Kurven er tom");
+            }
+            Order order = orderService.createGuestOrder(request);
+            return ResponseEntity.ok(order.getId());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // POST logget-ind bruger bestilling
+    @PostMapping("/checkout")
+    public ResponseEntity<?> userCheckout(@RequestBody List<Object> cartItems) {
+        return ResponseEntity.ok().body("Brugerordre modtaget");
+    }
+
+    // PUT accepter ordre (kun admin)
     @PutMapping("/{orderId}/accept")
     public ResponseEntity<?> acceptOrder(@PathVariable Long orderId) {
         try {
@@ -32,13 +53,13 @@ public class OrderController {
         }
     }
 
-    // Frontend: hent ventende ordrer til tab "Ventende"
+    // GET ventende ordrer (kun admin)
     @GetMapping("/pending")
     public ResponseEntity<List<Order>> getPendingOrders() {
         return ResponseEntity.ok(orderService.getPendingOrders());
     }
 
-    // #126 – Hent alle aktive (accepterede) ordrer
+    // GET aktive ordrer (kun admin)
     @GetMapping("/active")
     public ResponseEntity<List<Order>> getActiveOrders() {
         return ResponseEntity.ok(orderService.getActiveOrders());
