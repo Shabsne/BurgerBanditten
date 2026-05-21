@@ -62,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/users/register",
                                 "/api/users/login",
+                                "/api/users/logout",
                                 "/api/users/forgot-password",
                                 "/api/users/is-admin"
                         ).permitAll()
@@ -69,15 +70,18 @@ public class SecurityConfig {
                         // ── Gæst checkout ──────────────────────────────
                         .requestMatchers("/api/orders/guest/checkout").permitAll()
 
+                        // ── Bestillingsstatus – alle må se om det er åbent
+                        .requestMatchers(HttpMethod.GET, "/api/orders/status").permitAll()
+
                         // ── Forudbestilling validering ─────────────────
                         .requestMatchers(HttpMethod.GET,  "/api/preorder/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/preorder/validate").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/preorder/next-available").permitAll()
 
+                        // ── Admin-only: bestillings-switch ─────────────
+                        .requestMatchers("/api/orders/admin/**").hasRole("ADMIN")
+
                         // ── Admin-only: ordrer ─────────────────────────
-                        // VIGTIGT: hasRole("ADMIN") søger efter "ROLE_ADMIN" i authorities.
-                        // CustomUserDetailsService opretter "ROLE_ADMIN" korrekt.
-                        // Den gamle hasAuthority("ADMIN") matchede IKKE "ROLE_ADMIN" → 403.
                         .requestMatchers(
                                 "/api/orders/pending",
                                 "/api/orders/active",

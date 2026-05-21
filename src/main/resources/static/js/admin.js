@@ -42,6 +42,35 @@ async function checkOpeningStatus() {
     } catch (e) {}
 }
 
+// ── Bestillings-switch ───────────────────────────
+async function loadOrderingStatus() {
+    try {
+        const data = await api('/api/orders/status').then(r => r.json());
+        updateToggleBtn(data.open);
+    } catch (e) {
+        console.error('Kunne ikke hente bestillingsstatus', e);
+    }
+}
+
+async function toggleOrdering() {
+    try {
+        const data = await api('/api/orders/admin/toggle', { method: 'POST' }).then(r => r.json());
+        updateToggleBtn(data.open);
+        showToast(data.message);
+    } catch (e) {
+        showToast('Kunne ikke skifte bestillingsstatus', true);
+    }
+}
+
+function updateToggleBtn(isOpen) {
+    const btn = document.getElementById('ordering-toggle');
+    if (!btn) return;
+    btn.textContent = isOpen ? '🟢 Bestillinger åbne' : '🔴 Bestillinger lukket';
+    btn.style.background    = isOpen ? 'var(--success, #4CAF7D)' : 'var(--error, #FF5C5C)';
+    btn.style.color         = 'white';
+    btn.style.border        = 'none';
+}
+
 // ── Order tabs ───────────────────────────────────
 function switchOrderTab(tab) {
     document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
@@ -358,7 +387,6 @@ async function createIngredient() {
         document.getElementById('ing-price').value     = '';
         document.getElementById('ing-inventory').value = '';
 
-        // Genindlæs listen og sæt flag så loadIngredients() i produkt-modal også får nye
         ingredientsLoaded = false;
         allIngredients    = [];
         loadIngredientList();
@@ -491,6 +519,7 @@ document.getElementById('product-modal-overlay').addEventListener('click', funct
     } catch (e) { window.location.href = '/login.html'; return; }
 
     checkOpeningStatus();
+    loadOrderingStatus();      // ← hent bestillingsstatus ved opstart
     loadPendingOrders();
     loadActiveOrders();
     loadIngredients();
