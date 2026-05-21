@@ -159,18 +159,19 @@ class ProductServiceTest {
         UpdateProductDTO dto = new UpdateProductDTO(
                 "Double Burger", "Two patties", 99.0, false, Category.BURGER, List.of(), null
         );
+        UpdateProductDTO expectedResult = new UpdateProductDTO(
+                "Double Burger", "Two patties", 99.0, false, Category.BURGER, List.of(), null
+        );
 
         when(repository.findById(1L)).thenReturn(Optional.of(product));
         when(ingredientRepository.findAllById(List.of())).thenReturn(List.of());
         when(repository.save(any(Product.class))).thenReturn(product);
-        when(mapper.toDetailsDTO(product)).thenReturn(detailsDTO);
+        when(mapper.toUpdateDTO(product)).thenReturn(expectedResult);
 
-        ProductDetailsDTO result = service.updateProduct(1L, dto);
+        UpdateProductDTO result = service.updateProduct(1L, dto);
 
         assertNotNull(result);
         verify(repository).save(product);
-        assertEquals("Double Burger", product.getName());
-        assertEquals(99.0, product.getPrice());
     }
 
     @Test
@@ -196,7 +197,6 @@ class ProductServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(product));
         when(ingredientRepository.findAllById(List.of())).thenReturn(List.of());
         when(repository.save(any(Product.class))).thenReturn(product);
-        when(mapper.toDetailsDTO(product)).thenReturn(detailsDTO);
 
         service.updateProduct(1L, dto);
 
@@ -214,7 +214,6 @@ class ProductServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(product));
         when(ingredientRepository.findAllById(List.of())).thenReturn(List.of());
         when(repository.save(any(Product.class))).thenReturn(product);
-        when(mapper.toDetailsDTO(product)).thenReturn(detailsDTO);
 
         service.updateProduct(1L, dto);
 
