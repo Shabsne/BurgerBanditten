@@ -165,7 +165,7 @@ class ProductServiceTest {
         when(repository.save(any(Product.class))).thenReturn(product);
         when(mapper.toDetailsDTO(product)).thenReturn(detailsDTO);
 
-        ProductDetailsDTO result = service.updateProduct(1L, dto);
+        UpdateProductDTO result = service.updateProduct(1L, dto);
 
         assertNotNull(result);
         verify(repository).save(product);
