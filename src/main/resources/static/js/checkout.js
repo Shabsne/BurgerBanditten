@@ -8,8 +8,7 @@ cart.forEach(item => {
     const row = document.createElement('div');
     row.className = 'order-summary-row';
 
-    let details = `<span>${item.quantity}× ${item.name}</span><span>${item.price * item.quantity} kr.</span>`;
-    row.innerHTML = details;
+    row.innerHTML = `<span>${item.quantity}× ${item.name}</span><span>${item.price * item.quantity} kr.</span>`;
     itemsEl.appendChild(row);
 
     // Vis ekstra ingredienser og kommentar hvis valgt
