@@ -30,17 +30,53 @@ document.getElementById('checkout-total').textContent = total + ' kr.';
 
 // Sæt min-dato for forudbestilling til i dag
 const today = new Date().toISOString().split('T')[0];
-document.getElementById('pickup-date').min = today;
+const dateInputEl = document.getElementById('pickup-date');
+if (dateInputEl) {
+    dateInputEl.min = today;
+}
+
+// ── Generer tids-slots fra 12:00 til 22:00 (Hver halve time) ──────────────────
+function generateTimeSlots() {
+    const container = document.getElementById('time-slots-container');
+    if (!container) return;
+
+    container.innerHTML = ''; // Rens beholderen
+
+    const startHour = 12;
+    const endHour = 22;
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+        // Stop efter kl. 22:00, så vi ikke får 22:30 med
+        const minutesOptions = (hour === endHour) ? [0] : [0, 30];
+
+        minutesOptions.forEach(min => {
+            const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+
+            container.innerHTML += `
+                <label class="time-slot-btn">
+                    <input type="radio" name="pickup-time-slot" value="${timeStr}">
+                    <span>${timeStr}</span>
+                </label>
+            `;
+        });
+    }
+}
+
+// Kør genereringen med det samme
+generateTimeSlots();
 
 // ── Forudbestilling toggle ────────────────────────────────────────────────────
-function onDeliveryTimeChange(radio) {
+// Vi binder den også til vinduet, så den med sikkerhed kan kaldes fra dit HTML-radioinput
+window.onDeliveryTimeChange = function(radio) {
     const fields = document.getElementById('preorder-fields');
+    if (!fields) return;
+
     if (radio.value === 'preorder') {
         fields.classList.add('open');
     } else {
         fields.classList.remove('open');
     }
-}
+};
 
 // ── Validering helpers ────────────────────────────────────────────────────────
 function setError(input, el, msg) {
@@ -69,27 +105,40 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
     if (!phoneInput.value.trim()) { setError(phoneInput, phoneErr, 'Telefonnummer er påkrævet'); valid = false; }
     else clearError(phoneInput, phoneErr);
 
-    // Forudbestilling valgt? Valider dato + tid
+    // Forudbestilling valgt? Valider dato + tids-slot
     const isPreorder = document.querySelector('input[name="delivery-time"]:checked')?.value === 'preorder';
     let pickupDateTime = null;
 
     if (isPreorder) {
         const dateInput = document.getElementById('pickup-date');
-        const timeInput = document.getElementById('pickup-time');
-        const dateErr   = document.getElementById('dateError');
-        const timeErr   = document.getElementById('timeError');
+        const timeContainer = document.getElementById('time-slots-container');
+        const selectedTimeRadio = document.querySelector('input[name="pickup-time-slot"]:checked');
 
-        if (!dateInput.value) { setError(dateInput, dateErr, 'Vælg en dato'); valid = false; }
-        else clearError(dateInput, dateErr);
+        const dateErr = document.getElementById('dateError');
+        const timeErr = document.getElementById('timeError');
 
-        if (!timeInput.value) { setError(timeInput, timeErr, 'Vælg et tidspunkt'); valid = false; }
-        else clearError(timeInput, timeErr);
+        // Valider dato
+        if (!dateInput.value) {
+            setError(dateInput, dateErr, 'Vælg en dato');
+            valid = false;
+        } else {
+            clearError(dateInput, dateErr);
+        }
 
-        if (dateInput.value && timeInput.value) {
-            pickupDateTime = `${dateInput.value}T${timeInput.value}:00`;
-            // Kontrollér at tidspunktet er i fremtiden
+        // Valider tids-slot radio knap
+        if (!selectedTimeRadio) {
+            setError(timeContainer, timeErr, 'Vælg et tidspunkt');
+            valid = false;
+        } else {
+            clearError(timeContainer, timeErr);
+        }
+
+        // Hvis begge er udfyldt, tjek om det er i fremtiden
+        if (dateInput.value && selectedTimeRadio) {
+            pickupDateTime = `${dateInput.value}T${selectedTimeRadio.value}:00`;
+
             if (new Date(pickupDateTime) <= new Date()) {
-                setError(timeInput, timeErr, 'Tidspunktet skal være i fremtiden');
+                setError(timeContainer, timeErr, 'Tidspunktet skal være i fremtiden');
                 valid = false;
             }
         }
@@ -117,7 +166,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
         if (res.ok) {
             localStorage.removeItem('burgerCart');
             const msg = pickupDateTime
-                ? `Forudbestilling modtaget! Afhentes: ${new Date(pickupDateTime).toLocaleString('da-DK')} 🍔`
+                ? `Forudbestilling modtaget! Afhentes: ${new Date(pickupDateTime).toLocaleString('da-DK', { dateStyle: 'short', timeStyle: 'short' })} 🍔`
                 : 'Bestilling modtaget! Vi er i gang. 🍔';
             alert(msg);
             window.location.href = '/menu.html';

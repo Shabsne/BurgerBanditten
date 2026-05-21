@@ -1452,3 +1452,56 @@ input.ok    { border-color: var(--success); }
     opacity: 1;
     margin-top: 0.75rem;
 }
+/* Griddet til de halve timer */
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--md);
+    background: var(--dark);
+    max-height: 180px;
+    overflow-y: auto; /* Sørger for scroll hvis der er mange tider */
+}
+
+/* Skjul selve den runde radio-prik */
+.time-slot-btn input[type="radio"] {
+    display: none;
+}
+
+/* Selve knappen kunden ser */
+.time-slot-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    padding: 0.5rem;
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+.time-slot-btn:hover {
+    border-color: var(--muted);
+    background: var(--card-hover);
+}
+
+/* Når knappen er valgt (Active state) */
+.time-slot-btn:has(input:checked) {
+    background: var(--red) !important;
+    border-color: var(--red) !important;
+    color: white !important;
+    box-shadow: 0 0 12px rgba(232, 40, 30, 0.3);
+}
+
+/* Vis fejlramme hvis valideringen fejler */
+.time-slots-grid.error {
+    border-color: var(--error) !important;
+}
