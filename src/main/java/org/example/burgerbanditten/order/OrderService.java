@@ -125,4 +125,63 @@ public class OrderService {
         }
         return savedOrder;
     }
+
+    // ── Afvis ordre ─────────────────────────────────────────────────────
+    public Order rejectOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
+        order.setOrderStatus(OrderStatus.REJECTED);
+        return orderRepository.save(order);
+    }
+
+    // ── Fuldfør ordre ───────────────────────────────────────────────────
+    public Order completeOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
+        order.setOrderStatus(OrderStatus.COMPLETED);
+        return orderRepository.save(order);
+    }
+
+    // ── Ændre ordre (kun hvis PENDING) ──────────────────────────────────
+    public Order updateOrder(Long orderId, GuestOrderRequest request) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
+
+        if (order.getOrderStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Kun ventende ordrer kan ændres.");
+        }
+
+        // Opdater info i kommentarfeltet
+        String note = request.customerName();
+        if (request.phone() != null && !request.phone().isBlank()) {
+            note += " · Tlf: " + request.phone();
+        }
+        if (request.comment() != null && !request.comment().isBlank()) {
+            note += " · " + request.comment();
+        }
+        order.setComment(note);
+
+        // Udskift ordrelinjer (orphanRemoval = true sørger for at slette de gamle i databasen)
+        order.getOrderItems().clear();
+        List<OrderItem> newItems = new ArrayList<>();
+
+        for (GuestOrderRequest.GuestOrderItem item : request.items()) {
+            Product product = productRepository.findById(item.productId())
+                    .orElseThrow(() -> new RuntimeException("Produkt ikke fundet: " + item.productId()));
+
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setProduct(product);
+            orderItem.setQuantity(item.quantity());
+            orderItem.setPrice(product.getPrice() * item.quantity());
+            newItems.add(orderItem);
+        }
+        order.getOrderItems().addAll(newItems);
+
+        // Beregn ny total
+        double total = newItems.stream().mapToDouble(OrderItem::getPrice).sum();
+        order.setPrice(total);
+
+        return orderRepository.save(order);
+    }
 }
