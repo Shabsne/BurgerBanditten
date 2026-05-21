@@ -8,21 +8,44 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderingSwitchService orderingSwitchService;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService,
+                           OrderingSwitchService orderingSwitchService) {
         this.orderService = orderService;
+        this.orderingSwitchService = orderingSwitchService;
     }
 
-    // POST gæstebestilling — opretter en rigtig ordre med PENDING status
-    // Vises herefter på admin-sidens "Ventende"-fane
+    // GET – hent nuværende bestillingsstatus (til frontend)
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Boolean>> getOrderingStatus() {
+        return ResponseEntity.ok(Map.of("open", orderingSwitchService.isOrdersOpen()));
+    }
+
+    // POST – toggle bestillings-switch (kun admin)
+    @PostMapping("/admin/toggle")
+    public ResponseEntity<Map<String, Object>> toggleOrdering() {
+        boolean isNowOpen = orderingSwitchService.toggleOrders();
+        return ResponseEntity.ok(Map.of(
+                "open", isNowOpen,
+                "message", isNowOpen ? "Bestillinger er nu åbne" : "Bestillinger er nu lukkede"
+        ));
+    }
+
+    // POST gæstebestilling – tjekker switch inden bestilling oprettes
     @PostMapping("/guest/checkout")
     public ResponseEntity<?> guestCheckout(@RequestBody GuestOrderRequest request) {
+        if (!orderingSwitchService.isOrdersOpen()) {
+            return ResponseEntity.status(503)
+                    .body("Bestillinger er midlertidigt lukket – prøv igen senere");
+        }
         try {
             if (request.items() == null || request.items().isEmpty()) {
                 return ResponseEntity.badRequest().body("Kurven er tom");
@@ -34,9 +57,13 @@ public class OrderController {
         }
     }
 
-    // POST logget-ind bruger bestilling
+    // POST logget-ind bruger bestilling – tjekker også switch
     @PostMapping("/checkout")
     public ResponseEntity<?> userCheckout(@RequestBody List<Object> cartItems) {
+        if (!orderingSwitchService.isOrdersOpen()) {
+            return ResponseEntity.status(503)
+                    .body("Bestillinger er midlertidigt lukket – prøv igen senere");
+        }
         return ResponseEntity.ok().body("Brugerordre modtaget");
     }
 
