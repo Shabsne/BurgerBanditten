@@ -525,18 +525,54 @@ input.ok    { border-color: var(--success); }
 /* ═══════════════════════════════════════════════════════
    MODAL
    ═══════════════════════════════════════════════════════ */
+/* NY MODAL MED POP-UP OG SLØRING (Erstatning): */
 .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
+    position: fixed !important;         /* Tvinger den ud af body-flowet */
+    inset: 0;                           /* Dækker hele skærmen */
+    background: rgba(0, 0, 0, 0.65);    /* Mørk, gennemsigtig baggrund */
+    backdrop-filter: blur(8px);         /* Kraftigere og flottere baggrundssløring */
+    -webkit-backdrop-filter: blur(8px);  /* Sikrer sløring på Safari/iOS */
+    z-index: 99999 !important;          /* Lægger den HELT øverst (over kurven) */
+
+    display: flex;
+    align-items: center;                /* Centrerer vertikalt */
+    justify-content: center;            /* Centrerer horisontalt */
+
+    /* Starter usynlig for blød indtoning */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
 }
+
+/* Aktiveres automatisk af dit menu.js */
 .modal-overlay.open,
-.modal-overlay.visible { display: flex; }
+.modal-overlay.visible {
+    opacity: 1 !important;
+    display: flex !important;
+    pointer-events: auto !important;
+}
+
+.modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 2rem;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+
+    /* Animation: Popper blødt op og skalerer ind */
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Når overlayet åbnes, skydes boksen på plads */
+.modal-overlay.open .modal-box,
+.modal-overlay.visible .modal-box {
+    transform: translateY(0) scale(1);
+}
 
 .modal-box {
     background: var(--card);
@@ -1179,4 +1215,240 @@ input.ok    { border-color: var(--success); }
     .catalog-header > *:nth-child(3), .catalog-row > *:nth-child(3) { display: none; }
     .hours-row { grid-template-columns: 85px 1fr 1fr 50px; }
     .hours-row > *:nth-child(5) { display: none; }
+}
+
+/* =========================================================================
+   KOMPLET HOVERING CART WIDGET (Erstat den gamle widget-sektion i bunden)
+   ========================================================================= */
+
+.cart-widget {
+    position: fixed !important;    /* Overstyrer body > * flow-fejlen */
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9999 !important;      /* Lægger kurven helt i toppen over alt andet */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    pointer-events: none;          /* Gør kassen usynlig for klik, så du kan klikke på menuen bagved */
+}
+
+/* ── Fuld kurv-panel (Pop-up vindue) ────────────────────────────────────── */
+.cart-panel {
+    width: 340px;
+    max-height: 70vh;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.55);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    /* Rent pop-up udtryk med fjedrende animation */
+    transform-origin: bottom right;
+    transform: scale(0.9) translateY(15px);
+    opacity: 0;
+    pointer-events: none;          /* Forhindrer klik, når den er lukket */
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+
+/* Åben tilstand (styres af expandCart() i JS) */
+.cart-panel.open {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: all !important; /* Gør indholdet klikbart igen */
+}
+
+/* ── Selve listen med varer i pop-up'en ──────────────────────────────────── */
+.cart-panel .cart-drawer-items {
+    flex: 1;
+    overflow-y: auto;              /* Tilføjer scrollbar hvis kurven er lang */
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    scrollbar-width: thin;         /* Flottere tynd scrollbar til Firefox */
+    scrollbar-color: var(--border) transparent;
+}
+
+/* ── Minimeret bar (Knappen i bunden) ────────────────────────────────────── */
+.cart-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    padding: 0 1.4rem 0 1.1rem;
+    height: 52px;
+    min-width: 130px;
+    font-size: 1rem;
+    font-family: var(--font-body);
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(232,40,30,0.4);
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.18s;
+    white-space: nowrap;
+    pointer-events: all;           /* Skal altid kunne klikkes */
+}
+
+/* Hover-effekt på baren */
+.cart-bar:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 28px rgba(232,40,30,0.55);
+}
+
+/* Skjul baren (styres af collapseCart() i JS, når panel åbnes) */
+.cart-bar.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.85);
+}
+
+/* ── Antals-badge inde i baren ───────────────────────────────────────────── */
+.cart-bar .cart-count-badge {
+    position: static;              /* Placeres naturligt ved siden af ikonet i baren */
+    background: white;
+    color: var(--red);
+    font-size: 0.72rem;
+    font-weight: 700;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 99px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+/* ── Ekstra cart-item info (Tilvalg og kommentarer) ──────────────────────── */
+.cart-item-extras,
+.cart-item-comment {
+    display: block;                /* Sørger for de rykker ned på en ny linje */
+    font-size: 0.75rem;            /* Lidt mindre tekst, så det passer i det kompakte vindue */
+    line-height: 1.3;
+    margin-top: 0.15rem;           /* En lille smule luft i toppen */
+}
+
+.cart-item-extras {
+    color: var(--muted);           /* Nedtonet grå farve til ingredienser */
+    font-weight: 500;
+}
+
+.cart-item-comment {
+    color: var(--warning);         /* Orange/gul advarselsfarve, så kokken nemt ser kommentaren */
+    font-style: italic;            /* Kursiv stil så den skiller sig ud fra ingredienserne */
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   PRODUKT-KORT – klikbart
+   ═══════════════════════════════════════════════════════ */
+
+.product-card--clickable {
+    cursor: pointer;
+    user-select: none;
+}
+.product-card--clickable:hover {
+    transform: translateY(-4px);
+    border-color: var(--red);
+}
+.product-card--clickable:focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: 2px;
+}
+
+/* Produkt-modal indhold */
+.product-modal-desc {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+    line-height: 1.5;
+}
+.product-modal-price {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    color: var(--red);
+    letter-spacing: 0.02em;
+    margin-bottom: 0.25rem;
+}
+.product-comment-input {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 62px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.2s;
+}
+.product-comment-input:focus {
+    outline: none;
+    border-color: var(--red);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   FORUDBESTILLING – checkout-side
+   ═══════════════════════════════════════════════════════ */
+
+.preorder-section {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+.preorder-section-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.6rem;
+}
+.preorder-options {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.preorder-option {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    font-size: 0.88rem;
+    transition: border-color 0.15s, background 0.15s;
+    flex: 1;
+    min-width: 130px;
+}
+.preorder-option:has(input:checked) {
+    border-color: var(--red);
+    background: rgba(232,40,30,0.06);
+}
+.preorder-option input[type="radio"] {
+    accent-color: var(--red);
+    width: auto;
+    height: auto;
+    cursor: pointer;
+}
+.preorder-fields {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.2s ease;
+    margin-top: 0;
+}
+.preorder-fields.open {
+    max-height: 200px;
+    opacity: 1;
+    margin-top: 0.75rem;
 }
