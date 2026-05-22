@@ -76,13 +76,19 @@ async function showProduct(id) {
 
 function showProductModal(product, allIngredients = []) {
     const productIngNames = product.ingredients || [];
+    const baseIngredientNames = new Set(productIngNames);
 
     const ingChips = allIngredients.map(ing => `
         <label class="ing-chip">
-            <input type="checkbox" name="extra-ing"
-                   value="${ing.id}" data-name="${ing.name}"
-                   ${productIngNames.includes(ing.name) ? 'checked' : ''}>
-            ${ing.name}
+            <input type="checkbox" name="product-ing"
+                   value="${ing.id}"
+                   data-name="${ing.name}"
+                   data-price="${ing.price ?? 0}"
+                   data-default="${baseIngredientNames.has(ing.name)}"
+                   onchange="updateProductModalPrice()"
+                   ${baseIngredientNames.has(ing.name) ? 'checked' : ''}>
+            <span>${ing.name}</span>
+            ${ing.price ? `<small>${formatIngredientPrice(ing, baseIngredientNames.has(ing.name))}</small>` : ''}
         </label>`).join('');
 
     const modal = document.getElementById('modal');
@@ -92,11 +98,13 @@ function showProductModal(product, allIngredients = []) {
         </div>
 
         <p class="product-modal-desc">${product.description ?? ''}</p>
-        <p class="product-modal-price">${product.price} kr.</p>
+        <p class="product-modal-price">
+            <span id="product-modal-price" data-base-price="${product.price}">${product.price}</span> kr.
+        </p>
 
         ${allIngredients.length > 0 ? `
         <div class="form-group" style="margin-top:1rem;">
-            <label>Tilvalg / Ingredienser</label>
+            <label>Ingredienser</label>
             <div class="ingredients-grid">${ingChips}</div>
         </div>` : ''}
 
@@ -115,13 +123,65 @@ function showProductModal(product, allIngredients = []) {
         </div>
     `;
     modal.classList.add('open');
+    updateProductModalPrice();
+}
+
+function formatIngredientPrice(ingredient, isDefaultIngredient) {
+    const price = Number(ingredient.price || 0);
+    if (price === 0) return '';
+    return isDefaultIngredient ? `-${price} kr.` : `+${price} kr.`;
+}
+
+function getModalIngredientState() {
+    const inputs = [...document.querySelectorAll('input[name="product-ing"]')];
+
+    const selectedIngredients = inputs
+        .filter(cb => cb.checked)
+        .map(cb => ({
+            id: parseInt(cb.value),
+            name: cb.dataset.name,
+            price: Number(cb.dataset.price || 0),
+            defaultIngredient: cb.dataset.default === 'true'
+        }));
+
+    const addedIngredients = selectedIngredients
+        .filter(ing => !ing.defaultIngredient);
+
+    const removedIngredients = inputs
+        .filter(cb => !cb.checked && cb.dataset.default === 'true')
+        .map(cb => ({
+            id: parseInt(cb.value),
+            name: cb.dataset.name,
+            price: Number(cb.dataset.price || 0)
+        }));
+
+    return { selectedIngredients, addedIngredients, removedIngredients };
+}
+
+function calculateCustomizedPrice(basePrice) {
+    const { addedIngredients, removedIngredients } = getModalIngredientState();
+    const addedTotal = addedIngredients.reduce((sum, ing) => sum + ing.price, 0);
+    const removedTotal = removedIngredients.reduce((sum, ing) => sum + ing.price, 0);
+    return Math.max(0, Number(basePrice) + addedTotal - removedTotal);
+}
+
+function updateProductModalPrice() {
+    const priceEl = document.getElementById('product-modal-price');
+    if (!priceEl) return;
+
+    const price = calculateCustomizedPrice(priceEl.dataset.basePrice);
+    priceEl.textContent = formatPrice(price);
+}
+
+function formatPrice(price) {
+    return Number.isInteger(price) ? String(price) : price.toFixed(2);
 }
 
 function addToCartFromModal(id, name, price) {
-    const selectedIngredients = [...document.querySelectorAll('input[name="extra-ing"]:checked')]
-        .map(cb => ({ id: parseInt(cb.value), name: cb.dataset.name }));
+    const { selectedIngredients, addedIngredients, removedIngredients } = getModalIngredientState();
+    const customizedPrice = calculateCustomizedPrice(price);
     const comment = (document.getElementById('product-comment')?.value || '').trim();
-    addToCart(id, name, price, selectedIngredients, comment);
+    addToCart(id, name, customizedPrice, selectedIngredients, comment, addedIngredients, removedIngredients);
     closeModal();
 }
 

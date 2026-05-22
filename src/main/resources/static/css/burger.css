@@ -654,6 +654,12 @@ input.ok    { border-color: var(--success); }
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
 }
+.ing-chip span { flex: 1; }
+.ing-chip small {
+    color: var(--muted);
+    font-size: 0.68rem;
+    white-space: nowrap;
+}
 .ing-chip input[type="checkbox"] {
     width: auto; height: auto;
     accent-color: var(--red);
@@ -1684,4 +1690,13 @@ input.ok    { border-color: var(--success); }
 /* Vis fejlramme hvis valideringen fejler */
 .time-slots-grid.error {
     border-color: var(--error) !important;
+}
+
+.cart-item-removed {
+    display: block;
+    color: var(--error);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-top: 0.15rem;
 }

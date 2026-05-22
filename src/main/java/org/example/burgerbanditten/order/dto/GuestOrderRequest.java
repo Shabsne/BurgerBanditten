@@ -13,6 +13,14 @@ public record GuestOrderRequest(
             Long productId,
             String name,
             double price,
-            int quantity
+            int quantity,
+            List<SelectedIngredient> selectedIngredients
+    ) {}
+
+    public record SelectedIngredient(
+            Long id,
+            String name,
+            double price,
+            boolean defaultIngredient
     ) {}
 }
