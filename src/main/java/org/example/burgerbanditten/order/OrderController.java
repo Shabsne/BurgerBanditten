@@ -137,15 +137,6 @@ public class OrderController {
         }
     }
 
-    // PUT opdater/ændre ordre
-    @PutMapping("/{orderId}")
-    public ResponseEntity<?> updateOrder(@PathVariable Long orderId, @RequestBody GuestOrderRequest request) {
-        try {
-            return ResponseEntity.ok(orderService.updateOrder(orderId, request));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 
     @GetMapping("/statistics")
     public ResponseEntity<SalesStatisticsDto> getSalesStatistics(

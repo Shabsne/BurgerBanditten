@@ -201,7 +201,21 @@ public class OrderService {
         return savedOrder;
     }
 
+    // ── Afvis ordre ─────────────────────────────────────────────────────
+    public Order rejectOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
+        order.setOrderStatus(OrderStatus.REJECTED);
+        return orderRepository.save(order);
+    }
 
+    // ── Fuldfør ordre ───────────────────────────────────────────────────
+    public Order completeOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
+        order.setOrderStatus(OrderStatus.COMPLETED);
+        return orderRepository.save(order);
+    }
 
 
     // ── Salgsstatistik ─────────────────────────────────────────────────
