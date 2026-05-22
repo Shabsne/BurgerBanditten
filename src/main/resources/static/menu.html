@@ -32,7 +32,7 @@
 <h2 class="menu-section-header">Sides</h2>
 <div id="side-container" class="products-grid"></div>
 
-<!-- Produkt-detaljer modal -->
+<!-- Produkt-detaljer modal (klik på produkt) -->
 <div class="modal-overlay" id="modal">
     <div class="modal-box" id="modal-content"></div>
 </div>
@@ -42,32 +42,38 @@
     <div class="modal-box" id="update-modal-content"></div>
 </div>
 
-<!-- Cart -->
-<div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
+<!-- ══════════════════════════════════════════════
+     HOVERING CART WIDGET (altid fixed bottom-right)
+══════════════════════════════════════════════ -->
+<div id="cart-widget" class="cart-widget">
 
-<div id="cart-drawer" class="cart-drawer">
-    <div class="cart-drawer-header">
-        <div class="cart-drawer-title">Din <span>Kurv</span></div>
-        <button class="cart-close-btn" onclick="toggleCart()">&times;</button>
-    </div>
-    <div id="cart-drawer-items" class="cart-drawer-items"></div>
-    <div class="cart-drawer-footer">
-        <div class="cart-total-row">
-            <span class="cart-total-label">Total</span>
-            <span class="cart-total-amount"><span id="cart-total">0</span> kr.</span>
+    <!-- Fuld kurv-panel (expanded) -->
+    <div id="cart-panel" class="cart-panel">
+        <div class="cart-drawer-header">
+            <div class="cart-drawer-title">Din <span>Kurv</span></div>
+            <!-- X kollapser til bar — fjerner ikke kurven -->
+            <button class="cart-close-btn" onclick="collapseCart()" title="Minimer kurv">−</button>
         </div>
-        <button class="cart-checkout-btn" onclick="checkout()">Bestil mad →</button>
+        <div id="cart-drawer-items" class="cart-drawer-items"></div>
+        <div class="cart-drawer-footer">
+            <div class="cart-total-row">
+                <span class="cart-total-label">Total</span>
+                <span class="cart-total-amount"><span id="cart-total">0</span> kr.</span>
+            </div>
+            <button class="cart-checkout-btn" onclick="checkout()">Bestil mad →</button>
+        </div>
     </div>
-</div>
 
-<button class="cart-float-btn" onclick="toggleCart()">
-    🛒
-    <span id="cart-count" class="cart-count-badge">0</span>
-</button>
+    <!-- Minimeret bar (collapsed) — klik for at åbne kurv igen -->
+    <button id="cart-bar" class="cart-bar" onclick="expandCart()">
+        🛒
+        <span id="cart-count" class="cart-count-badge">0</span>
+    </button>
+
+</div>
 
 <div id="cart-toast" class="cart-toast">Tilføjet til kurven! 🍔</div>
 
-<script src="/js/preorder/preorder-modal.js"></script>
 <script src="/js/cart.js"></script>
 <script src="/js/menu.js"></script>
 </body>
