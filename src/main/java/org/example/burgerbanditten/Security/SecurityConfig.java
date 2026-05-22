@@ -81,6 +81,9 @@ public class SecurityConfig {
                         // ── Admin-only: bestillings-switch ─────────────
                         .requestMatchers("/api/orders/admin/**").hasRole("ADMIN")
 
+                        // ───────────── Hent en specifik ordre ─────────────
+                        .requestMatchers(HttpMethod.GET, "/api/orders/*").hasRole("ADMIN")
+
                         // ── Admin-only: ordrer ─────────────────────────
                         .requestMatchers(
                                 "/api/orders/pending",
