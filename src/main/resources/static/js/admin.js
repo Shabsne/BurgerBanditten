@@ -29,7 +29,6 @@ function showScreen(id, btn) {
     document.getElementById('screen-' + id).classList.add('visible');
     if (btn) btn.classList.add('active');
     if (id === 'catalog'     && !allProducts.length)     loadCatalog();
-    if (id === 'statistics') loadSalesStatistics();
     if (id === 'ingredients' && !ingredientsLoaded)      loadIngredientList();
     if (id === 'hours') { loadWeeklySchedule(); loadHolidays(); }
 }
@@ -66,10 +65,10 @@ async function toggleOrdering() {
 function updateToggleBtn(isOpen) {
     const btn = document.getElementById('ordering-toggle');
     if (!btn) return;
-    btn.textContent = isOpen ? '🟢 Bestillinger åbne' : '🔴 Bestillinger lukket';
-    btn.style.background    = isOpen ? 'var(--success, #4CAF7D)' : 'var(--error, #FF5C5C)';
-    btn.style.color         = 'white';
-    btn.style.border        = 'none';
+    btn.textContent      = isOpen ? '🟢 Bestillinger åbne' : '🔴 Bestillinger lukket';
+    btn.style.background = isOpen ? 'var(--success, #4CAF7D)' : 'var(--error, #FF5C5C)';
+    btn.style.color      = 'white';
+    btn.style.border     = 'none';
 }
 
 // ── Order tabs ───────────────────────────────────
@@ -96,7 +95,10 @@ function buildOrderCard(order, isPending) {
 
     const footer = isPending
         ? `<button class="btn-accept" id="btn-${order.id}" onclick="acceptOrder(${order.id})">✓ Accepter</button>`
-        : `<span class="accepted-pill">✓ Accepteret</span>`;
+        : `<div style="display:flex; gap:0.5rem; align-items:center;">
+               <span class="accepted-pill">✓ Accepteret</span>
+               <button class="btn-sm" onclick="openEditOrderModal(${order.id})">✏️ Rediger</button>
+           </div>`;
 
     card.innerHTML = `
         <div class="card-header">
@@ -183,66 +185,86 @@ async function acceptOrder(orderId) {
     }
 }
 
-// ── Catalog ──────────────────────────────────────
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('da-DK', {
-        style: 'currency',
-        currency: 'DKK'
-    }).format(amount ?? 0);
-}
+// ── Rediger ordre modal ──────────────────────────
+let editingOrderId = null;
 
-function renderSalesStatistics(statistics) {
-    document.getElementById('total-revenue').textContent = formatCurrency(statistics.totalRevenue);
-
-    const tableBody = document.getElementById('product-sales-body');
-    tableBody.innerHTML = '';
-
-    if (!statistics.productSales || statistics.productSales.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="3">Ingen salg i perioden</td></tr>';
-        return;
-    }
-
-    statistics.productSales.forEach((product, index) => {
-        const row = document.createElement('tr');
-        const rankCell = document.createElement('td');
-        const productCell = document.createElement('td');
-        const quantityCell = document.createElement('td');
-
-        rankCell.textContent = `#${index + 1}`;
-        productCell.textContent = product.productName;
-        quantityCell.textContent = product.quantitySold;
-        quantityCell.className = 'quantity-cell';
-
-        row.append(rankCell, productCell, quantityCell);
-        tableBody.appendChild(row);
-    });
-}
-
-async function loadSalesStatistics() {
-    const from = document.getElementById('statistics-from').value;
-    const to = document.getElementById('statistics-to').value;
-    const params = new URLSearchParams();
-
-    if (from) params.set('from', from);
-    if (to) params.set('to', to);
+async function openEditOrderModal(orderId) {
+    editingOrderId = orderId;
 
     try {
-        const res = await api(`/api/orders/statistics?${params.toString()}`);
-        if (!res.ok) throw new Error('Kunne ikke hente salgsstatistik');
-        renderSalesStatistics(await res.json());
+        const res = await api(`/api/orders/${orderId}`);
+        if (!res.ok) throw new Error('Kunne ikke hente ordre');
+        const order = await res.json();
+
+        document.getElementById('edit-order-id').textContent   = '#' + orderId;
+        document.getElementById('edit-comment').value          = order.comment ?? '';
+        document.getElementById('edit-pickup-time').value      = order.pickUpTime
+            ? order.pickUpTime.substring(0, 16)
+            : '';
+
+        const itemsContainer = document.getElementById('edit-order-items');
+        itemsContainer.innerHTML = (order.orderItems || []).map(item => `
+            <div class="edit-item-row" data-product-id="${item.product?.id}">
+                <span>${item.product?.name ?? 'Produkt'}</span>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <label>Antal:</label>
+                    <input type="number"
+                           class="edit-item-qty"
+                           value="${item.quantity}"
+                           min="1"
+                           style="width:60px; padding:0.25rem; background:var(--input-bg); border:1px solid var(--border); border-radius:4px; color:var(--text);">
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('edit-order-modal-overlay').classList.add('open');
     } catch (e) {
-        document.getElementById('product-sales-body').innerHTML =
-            '<tr><td colspan="3">Kunne ikke hente statistik - prov igen</td></tr>';
-        showToast(e.message || 'Kunne ikke hente statistik', true);
+        showToast('Kunne ikke hente ordredetaljer', true);
     }
 }
 
-function clearStatisticsFilter() {
-    document.getElementById('statistics-from').value = '';
-    document.getElementById('statistics-to').value = '';
-    loadSalesStatistics();
+function closeEditOrderModal() {
+    document.getElementById('edit-order-modal-overlay').classList.remove('open');
+    editingOrderId = null;
 }
 
+async function saveEditOrder() {
+    if (!editingOrderId) return;
+
+    const comment = document.getElementById('edit-comment').value.trim();
+    const pickUpTime = document.getElementById('edit-pickup-time').value;
+
+    const items = [...document.querySelectorAll('.edit-item-row')].map(row => {
+        return {
+            productId: parseInt(row.getAttribute('data-product-id')),
+            quantity: parseInt(row.querySelector('.edit-item-qty').value)
+        };
+    });
+
+    try {
+        const res = await api(`/api/orders/${editingOrderId}/update`, {
+            method: 'PUT',
+            body: JSON.stringify({ comment, pickUpTime, items })
+        });
+
+        if (!res.ok) throw new Error('Status ' + res.status);
+
+        showToast('Ordre opdateret ✓');
+        closeEditOrderModal();
+        loadActiveOrders();
+        loadPendingOrders();
+    } catch (e) {
+        showToast('Kunne ikke gemme ændringer på ordren', true);
+        console.error(e);
+    }
+}
+
+// Alias hvis din HTML-knap bruger saveOrderChanges i stedet
+async function saveOrderChanges() {
+    await saveEditOrder();
+}
+
+// ── Catalog ──────────────────────────────────────
 let allProducts = [], allIngredients = [], activeFilter = 'ALL', editingId = null;
 
 async function loadCatalog() {
@@ -422,11 +444,9 @@ function renderIngredientList(ingredients) {
             <div>${ing.price} kr.</div>
             <div>${ing.inventory}</div>
             <div>
-                <button class="btn-sm" onclick="openEditIngredient(${ing.id}, '${ing.name}', ${ing.price}, ${ing.inventory}, ${ing.addOn})">Rediger</button>
                 <button class="btn-sm btn-danger" onclick="deleteIngredient(${ing.id})">✕</button>
-               </div>
-            </div>`).join('');
-               
+            </div>
+        </div>`).join('');
 }
 
 async function createIngredient() {
@@ -443,12 +463,10 @@ async function createIngredient() {
             body: JSON.stringify({ name, price, inventory, addOn })
         });
         if (!res.ok) throw new Error('Status ' + res.status);
-
         showToast('Ingrediens oprettet ✓');
         document.getElementById('ing-name').value      = '';
         document.getElementById('ing-price').value     = '';
         document.getElementById('ing-inventory').value = '';
-
         ingredientsLoaded = false;
         allIngredients    = [];
         loadIngredientList();
@@ -464,45 +482,6 @@ async function deleteIngredient(id) {
         allIngredients = [];
         showToast('Ingrediens slettet');
     } catch (e) { showToast('Kunne ikke slette ingrediens', true); }
-}
-
-let editingIngredientId = null;
-
-function openEditIngredient(id, name, price, inventory, addOn) {
-    editingIngredientId = id;
-    document.getElementById('edit-ing-name').value      = name;
-    document.getElementById('edit-ing-price').value     = price;
-    document.getElementById('edit-ing-inventory').value = inventory;
-    document.getElementById('edit-ing-addon').checked   = addOn;
-    document.getElementById('edit-ingredient-modal-overlay').classList.add('open');
-}
-
-function closeEditIngredient() {
-    document.getElementById('edit-ingredient-modal-overlay').classList.remove('open');
-    editingIngredientId = null;
-}
-
-async function saveEditIngredient() {
-    const name      = document.getElementById('edit-ing-name').value.trim();
-    const price     = parseFloat(document.getElementById('edit-ing-price').value) || 0;
-    const inventory = parseInt(document.getElementById('edit-ing-inventory').value) || 0;
-    const addOn     = document.getElementById('edit-ing-addon').checked;
-
-    try {
-        const res = await api(`/api/ingredients/${editingIngredientId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ name, price, inventory, addOn })
-        });
-        if (!res.ok) throw new Error('Status ' + res.status);
-
-        showToast('Ingrediens opdateret ✓');
-        closeEditIngredient();
-        ingredientsLoaded = false;
-        allIngredients = [];
-        loadIngredientList();
-    } catch (e) {
-        showToast('Kunne ikke opdatere ingrediens', true);
-    }
 }
 
 // ── Opening Hours ────────────────────────────────
@@ -550,10 +529,7 @@ async function loadHolidays() {
     try {
         const holidays = await api('/admin/opening-hours/api/holidays').then(r => r.json());
         const list = document.getElementById('holiday-list');
-        if (!holidays.length) {
-            list.innerHTML = '<p>Ingen særdage registreret</p>';
-            return;
-        }
+        if (!holidays.length) { list.innerHTML = '<p>Ingen særdage registreret</p>'; return; }
         list.innerHTML = `<div class="hours-wrap">
             <div class="hours-table-head">Registrerede særdage</div>
             ${holidays.map(h => `
@@ -612,8 +588,8 @@ document.getElementById('product-modal-overlay').addEventListener('click', funct
     if (e.target === this) closeProductModal();
 });
 
-document.getElementById('edit-ingredient-modal-overlay').addEventListener('click', function(e) {
-    if (e.target === this) closeEditIngredient();
+document.getElementById('edit-order-modal-overlay').addEventListener('click', function (e) {
+    if (e.target === this) closeEditOrderModal();
 });
 
 // ── Init ─────────────────────────────────────────
@@ -624,7 +600,7 @@ document.getElementById('edit-ingredient-modal-overlay').addEventListener('click
     } catch (e) { window.location.href = '/login.html'; return; }
 
     checkOpeningStatus();
-    loadOrderingStatus();      // ← hent bestillingsstatus ved opstart
+    loadOrderingStatus();
     loadPendingOrders();
     loadActiveOrders();
     loadIngredients();
