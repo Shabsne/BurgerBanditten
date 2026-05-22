@@ -190,7 +190,7 @@ public class OrderService {
 
         return orderRepository.save(order);
     }
-}
+
     // ── Salgsstatistik ─────────────────────────────────────────────────
     public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {
         LocalDateTime fromDateTime = from == null ? null : from.atStartOfDay();

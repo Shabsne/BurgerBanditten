@@ -121,7 +121,7 @@ public class OrderController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-}
+
     @GetMapping("/statistics")
     public ResponseEntity<SalesStatisticsDto> getSalesStatistics(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
