@@ -28,6 +28,8 @@ public class Order {
 
     private String comment;
 
+    private LocalDateTime createdAt;
+
     private LocalDateTime pickUpTime;
 
     @Enumerated(EnumType.STRING)
@@ -52,6 +54,7 @@ public class Order {
     public String getComment() { return comment; }
     public LocalDateTime getPickUpTime() { return pickUpTime; }
     public OrderStatus getOrderStatus() { return orderStatus; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void setId(Long id) { this.id = id; }
     public void setUser(User user) { this.user = user; }
@@ -60,5 +63,13 @@ public class Order {
     public void setComment(String comment) { this.comment = comment; }
     public void setPickUpTime(LocalDateTime pickUpTime) { this.pickUpTime = pickUpTime; }
     public void setOrderStatus(OrderStatus orderStatus) { this.orderStatus = orderStatus; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    @PrePersist
+    public void setCreatedAtWhenMissing() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }
 

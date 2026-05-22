@@ -2,13 +2,19 @@ package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.order.dto.GuestOrderRequest;
+import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
+import org.example.burgerbanditten.order.dto.ProductSalesDto;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderService {
@@ -183,5 +189,49 @@ public class OrderService {
         order.setPrice(total);
 
         return orderRepository.save(order);
+    }
+}
+    // ── Salgsstatistik ─────────────────────────────────────────────────
+    public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {
+        LocalDateTime fromDateTime = from == null ? null : from.atStartOfDay();
+        LocalDateTime toDateTime = to == null ? null : to.plusDays(1).atStartOfDay();
+
+        List<Order> orders = orderRepository.findSalesOrders(
+                List.of(OrderStatus.ACCEPTED, OrderStatus.COMPLETED),
+                fromDateTime,
+                toDateTime
+        );
+
+        Map<Long, ProductSalesDto> productSales = new LinkedHashMap<>();
+        for (Product product : productRepository.findAll()) {
+            productSales.put(product.getId(), new ProductSalesDto(product.getId(), product.getName(), 0));
+        }
+
+        double totalRevenue = 0;
+        for (Order order : orders) {
+            totalRevenue += order.getPrice();
+
+            if (order.getOrderItems() == null) {
+                continue;
+            }
+
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = item.getProduct();
+                if (product == null) {
+                    continue;
+                }
+
+                ProductSalesDto current = productSales.getOrDefault(
+                        product.getId(),
+                        new ProductSalesDto(product.getId(), product.getName(), 0)
+                );
+                productSales.put(
+                        product.getId(),
+                        new ProductSalesDto(product.getId(), current.productName(), current.quantitySold() + item.getQuantity())
+                );
+            }
+        }
+
+        return new SalesStatisticsDto(List.copyOf(productSales.values()), totalRevenue);
     }
 }

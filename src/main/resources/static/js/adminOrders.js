@@ -14,6 +14,10 @@ function switchTab(tab) {
 
     document.getElementById(`tab-${tab}`).classList.add('active');
     document.getElementById(`panel-${tab}`).classList.add('active');
+
+    if (tab === 'statistics') {
+        loadSalesStatistics();
+    }
 }
 
 // ── Toast ────────────────────────────────────────────────────────────────────
@@ -228,5 +232,74 @@ async function acceptOrder(orderId) {
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('da-DK', {
+        style: 'currency',
+        currency: 'DKK'
+    }).format(amount ?? 0);
+}
+
+function renderSalesStatistics(statistics) {
+    document.getElementById('total-revenue').textContent = formatCurrency(statistics.totalRevenue);
+
+    const tableBody = document.getElementById('product-sales-body');
+    tableBody.innerHTML = '';
+
+    if (!statistics.productSales || statistics.productSales.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 2;
+        cell.textContent = 'Ingen produkter fundet';
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+        return;
+    }
+
+    statistics.productSales.forEach(product => {
+        const row = document.createElement('tr');
+        const productCell = document.createElement('td');
+        const quantityCell = document.createElement('td');
+
+        productCell.textContent = product.productName;
+        quantityCell.textContent = product.quantitySold;
+        quantityCell.className = 'quantity-cell';
+
+        row.append(productCell, quantityCell);
+        tableBody.appendChild(row);
+    });
+}
+
+async function loadSalesStatistics() {
+    const from = document.getElementById('statistics-from').value;
+    const to = document.getElementById('statistics-to').value;
+    const params = new URLSearchParams();
+
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+
+    try {
+        const response = await fetch(`/api/orders/statistics?${params.toString()}`);
+
+        if (!response.ok) {
+            throw new Error('Kunne ikke hente salgsstatistik');
+        }
+
+        renderSalesStatistics(await response.json());
+    } catch (error) {
+        console.error(error);
+        document.getElementById('product-sales-body').innerHTML = `
+            <tr>
+                <td colspan="2">Kunne ikke hente statistik - prov igen</td>
+            </tr>`;
+    }
+}
+
+function clearStatisticsFilter() {
+    document.getElementById('statistics-from').value = '';
+    document.getElementById('statistics-to').value = '';
+    loadSalesStatistics();
+}
+
 loadPendingOrders();
 loadActiveOrders();
+loadSalesStatistics();
