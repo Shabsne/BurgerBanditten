@@ -4,6 +4,7 @@ import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.order.dto.GuestOrderRequest;
 import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
 import org.example.burgerbanditten.order.dto.ProductSalesDto;
+import org.example.burgerbanditten.order.dto.UpdateOrderRequest;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
@@ -118,6 +119,10 @@ public class OrderService {
         return orderRepository.findByOrderStatus(OrderStatus.ACCEPTED);
     }
 
+    public java.util.Optional<Order> getOrderById(Long orderId) {
+        return orderRepository.findById(orderId);
+    }
+
     // ── Forudbestilling ─────────────────────────────────────────────────
     public Order createOrderWithPickUpTime(Order order, String pickUpTimeString) {
         Order savedOrder = orderRepository.save(order);
@@ -132,64 +137,72 @@ public class OrderService {
         return savedOrder;
     }
 
-    // ── Afvis ordre ─────────────────────────────────────────────────────
-    public Order rejectOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
-        order.setOrderStatus(OrderStatus.REJECTED);
-        return orderRepository.save(order);
-    }
+    // ── Ændre eksisterende ordre (admin) ─────────────────────────────────
+    public Order updateOrder(Long orderId, UpdateOrderRequest request) {
 
-    // ── Fuldfør ordre ───────────────────────────────────────────────────
-    public Order completeOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
-        order.setOrderStatus(OrderStatus.COMPLETED);
-        return orderRepository.save(order);
-    }
-
-    // ── Ændre ordre (kun hvis PENDING) ──────────────────────────────────
-    public Order updateOrder(Long orderId, GuestOrderRequest request) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
 
-        if (order.getOrderStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Kun ventende ordrer kan ændres.");
+        // Kun ACCEPTED ordrer kan redigeres – ikke COMPLETED eller REJECTED
+        if (order.getOrderStatus() == OrderStatus.COMPLETED ||
+                order.getOrderStatus() == OrderStatus.REJECTED) {
+            throw new IllegalStateException(
+                    "Ordre #" + orderId + " kan ikke redigeres – status er " + order.getOrderStatus());
         }
 
-        // Opdater info i kommentarfeltet
-        String note = request.customerName();
-        if (request.phone() != null && !request.phone().isBlank()) {
-            note += " · Tlf: " + request.phone();
-        }
+        // Opdater kommentar hvis angivet
         if (request.comment() != null && !request.comment().isBlank()) {
-            note += " · " + request.comment();
+            order.setComment(request.comment());
         }
-        order.setComment(note);
 
-        // Udskift ordrelinjer (orphanRemoval = true sørger for at slette de gamle i databasen)
-        order.getOrderItems().clear();
-        List<OrderItem> newItems = new ArrayList<>();
-
-        for (GuestOrderRequest.GuestOrderItem item : request.items()) {
-            Product product = productRepository.findById(item.productId())
-                    .orElseThrow(() -> new RuntimeException("Produkt ikke fundet: " + item.productId()));
-
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setQuantity(item.quantity());
-            orderItem.setPrice(product.getPrice() * item.quantity());
-            newItems.add(orderItem);
+        // Opdater afhentingstidspunkt hvis angivet
+        if (request.pickUpTime() != null && !request.pickUpTime().isBlank()) {
+            order.setPickUpTime(LocalDateTime.parse(request.pickUpTime()));
         }
-        order.getOrderItems().addAll(newItems);
 
-        // Beregn ny total
-        double total = newItems.stream().mapToDouble(OrderItem::getPrice).sum();
-        order.setPrice(total);
+        // Opdater varer og antal hvis angivet
+        if (request.items() != null && !request.items().isEmpty()) {
 
-        return orderRepository.save(order);
+            // Ryd eksisterende items (orphanRemoval sletter dem fra databasen)
+            order.getOrderItems().clear();
+
+            // Byg nye items
+            List<OrderItem> newItems = new ArrayList<>();
+            for (UpdateOrderRequest.UpdateOrderItem item : request.items()) {
+                Product product = productRepository.findById(item.productId())
+                        .orElseThrow(() -> new RuntimeException("Produkt ikke fundet: " + item.productId()));
+
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setProduct(product);
+                orderItem.setQuantity(item.quantity());
+                orderItem.setPrice(product.getPrice() * item.quantity());
+                newItems.add(orderItem);
+            }
+
+            order.getOrderItems().addAll(newItems);
+
+            // Genberegn totalpris
+            double total = newItems.stream().mapToDouble(OrderItem::getPrice).sum();
+            order.setPrice(total);
+        }
+
+        Order savedOrder = orderRepository.save(order);
+
+        // Notificér kunden hvis ordren har en bruger
+        if (order.getUser() != null) {
+            emailService.sendOrderUpdatedNotification(
+                    order.getUser().getMail(),
+                    order.getUser().getName(),
+                    order.getId()
+            );
+        }
+
+        return savedOrder;
     }
+
+
+
 
     // ── Salgsstatistik ─────────────────────────────────────────────────
     public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {
@@ -232,12 +245,6 @@ public class OrderService {
             }
         }
 
-        List<ProductSalesDto> topProducts = productSales.values().stream()
-                .filter(product -> product.quantitySold() > 0)
-                .sorted((first, second) -> Integer.compare(second.quantitySold(), first.quantitySold()))
-                .limit(5)
-                .toList();
-
-        return new SalesStatisticsDto(topProducts, totalRevenue);
+        return new SalesStatisticsDto(List.copyOf(productSales.values()), totalRevenue);
     }
 }

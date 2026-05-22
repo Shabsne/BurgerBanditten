@@ -22,7 +22,6 @@
 
   <nav class="topbar-nav">
     <button class="nav-tab active" onclick="showScreen('orders', this)">Ordrer</button>
-    <button class="nav-tab" onclick="showScreen('statistics', this)">Salg</button>
     <button class="nav-tab" onclick="showScreen('catalog', this)">Katalog</button>
     <button class="nav-tab" onclick="showScreen('ingredients', this)">Ingredienser</button>
     <button class="nav-tab" onclick="showScreen('hours', this)">Bestillingsvindue</button>
@@ -69,49 +68,6 @@
 <!-- ══════════════════════════════════════════════
      SCREEN: KATALOG
 ══════════════════════════════════════════════ -->
-<!-- SALES STATISTICS -->
-<main id="screen-statistics" class="admin-screen page-content">
-
-  <h2 class="page-heading">Bedst s&aelig;lgende produkter</h2>
-  <p class="page-subheading">Se top 5 produkter baseret p&aring; antal solgte varer</p>
-
-  <div class="statistics-toolbar">
-    <label>
-      Fra
-      <input type="date" id="statistics-from">
-    </label>
-    <label>
-      Til
-      <input type="date" id="statistics-to">
-    </label>
-    <button class="btn-accept" type="button" onclick="loadSalesStatistics()">Filtrer</button>
-    <button class="btn-secondary" type="button" onclick="clearStatisticsFilter()">Ryd</button>
-  </div>
-
-  <div class="statistics-summary">
-    <span>Samlet oms&aelig;tning</span>
-    <strong id="total-revenue">0,00 kr.</strong>
-  </div>
-
-  <div class="statistics-table-wrap">
-    <table class="statistics-table">
-      <thead>
-      <tr>
-        <th>Placering</th>
-        <th>Produkt</th>
-        <th>Antal solgt</th>
-      </tr>
-      </thead>
-      <tbody id="product-sales-body">
-      <tr>
-        <td colspan="3">Henter statistik...</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-
-</main>
-
 <main id="screen-catalog" class="admin-screen page-content">
   <h2 class="page-heading">Produktkatalog</h2>
   <p class="page-subheading">Tilføj, rediger og slet produkter</p>
