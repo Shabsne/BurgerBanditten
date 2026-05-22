@@ -37,7 +37,7 @@ class OrderServiceTests {
     // ── Ikke-eksisterende ordre ──────────────────────────
 
     @Test
-    void skalKasteException_NårOrdreIkkeFindes() {
+    void skalKasteException_NaarOrdreIkkeFindes() {
         when(orderRepository.findById(99L)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
@@ -50,7 +50,7 @@ class OrderServiceTests {
     // ── #128 – Allerede accepteret ordre ─────────────────
 
     @Test
-    void skalKasteException_NårOrdreAlleredeErAccepteret() {
+    void skalKasteException_NaarOrdreAlleredeErAccepteret() {
         Order order = buildOrder(OrderStatus.ACCEPTED);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
@@ -64,7 +64,7 @@ class OrderServiceTests {
     // ── Forkert status (fx COMPLETED) ────────────────────
 
     @Test
-    void skalKasteException_NårOrdreIkkeErPending() {
+    void skalKasteException_NaarOrdreIkkeErPending() {
         Order order = buildOrder(OrderStatus.COMPLETED);
         when(orderRepository.findById(2L)).thenReturn(Optional.of(order));
 
@@ -78,7 +78,7 @@ class OrderServiceTests {
     // ── #125 + #127 – Gyldig accept ──────────────────────
 
     @Test
-    void skalAcceptereOrdre_NårStatusErPending() {
+    void skalAcceptereOrdre_NaarStatusErPending() {
         Order order = buildOrder(OrderStatus.PENDING);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenReturn(order);
@@ -102,7 +102,7 @@ class OrderServiceTests {
 
     // ISSUE #111
     @Test
-    void skalReturnereSalgsstatistikForPeriode() {
+    void skalReturnereTop5SalgsstatistikForPeriode() {
         Product burger = new Product();
         burger.setId(1L);
         burger.setName("Cheese Burger");
@@ -111,18 +111,58 @@ class OrderServiceTests {
         cola.setId(2L);
         cola.setName("Coca Cola");
 
+        Product fries = new Product();
+        fries.setId(3L);
+        fries.setName("Fries");
+
+        Product nuggets = new Product();
+        nuggets.setId(4L);
+        nuggets.setName("Nuggets");
+
+        Product shake = new Product();
+        shake.setId(5L);
+        shake.setName("Shake");
+
+        Product water = new Product();
+        water.setId(6L);
+        water.setName("Water");
+
+        Product unused = new Product();
+        unused.setId(7L);
+        unused.setName("Unused");
+
         OrderItem burgerItem = new OrderItem();
         burgerItem.setProduct(burger);
         burgerItem.setQuantity(2);
 
+        OrderItem colaItem = new OrderItem();
+        colaItem.setProduct(cola);
+        colaItem.setQuantity(7);
+
+        OrderItem friesItem = new OrderItem();
+        friesItem.setProduct(fries);
+        friesItem.setQuantity(5);
+
+        OrderItem nuggetsItem = new OrderItem();
+        nuggetsItem.setProduct(nuggets);
+        nuggetsItem.setQuantity(4);
+
+        OrderItem shakeItem = new OrderItem();
+        shakeItem.setProduct(shake);
+        shakeItem.setQuantity(3);
+
+        OrderItem waterItem = new OrderItem();
+        waterItem.setProduct(water);
+        waterItem.setQuantity(1);
+
         Order order = new Order();
         order.setPrice(183.0);
-        order.setOrderItems(List.of(burgerItem));
+        order.setOrderItems(List.of(burgerItem, colaItem, friesItem, nuggetsItem, shakeItem, waterItem));
 
         LocalDate from = LocalDate.of(2026, 5, 1);
         LocalDate to = LocalDate.of(2026, 5, 18);
 
-        when(productRepository.findAll()).thenReturn(List.of(burger, cola));
+        when(productRepository.findAll()).thenReturn(List.of(burger, cola, fries, nuggets, shake, water, unused));
         when(orderRepository.findSalesOrders(
                 List.of(OrderStatus.ACCEPTED, OrderStatus.COMPLETED),
                 LocalDateTime.of(2026, 5, 1, 0, 0),
@@ -132,8 +172,13 @@ class OrderServiceTests {
         var result = orderService.getSalesStatistics(from, to);
 
         assertEquals(183.0, result.totalRevenue());
-        assertEquals(2, result.productSales().get(0).quantitySold());
-        assertEquals(0, result.productSales().get(1).quantitySold());
+        assertEquals(5, result.productSales().size());
+        assertEquals("Coca Cola", result.productSales().get(0).productName());
+        assertEquals(7, result.productSales().get(0).quantitySold());
+        assertEquals("Fries", result.productSales().get(1).productName());
+        assertEquals("Nuggets", result.productSales().get(2).productName());
+        assertEquals("Shake", result.productSales().get(3).productName());
+        assertEquals("Cheese Burger", result.productSales().get(4).productName());
     }
 
     private Order buildOrder(OrderStatus status) {
