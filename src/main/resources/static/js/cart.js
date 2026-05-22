@@ -45,18 +45,37 @@ function showToast() {
  * @param {Array}  selectedIngredients  – [{ id, name }, …]  (valgfrit)
  * @param {string} comment              – fri kommentar       (valgfrit)
  */
-function addToCart(productId, name, price, selectedIngredients = [], comment = '') {
+function addToCart(
+    productId,
+    name,
+    price,
+    selectedIngredients = [],
+    comment = '',
+    addedIngredients = [],
+    removedIngredients = []
+) {
     // Samme produkt uden tilvalg/kommentar slås sammen; ellers ny linje
     const existing = cart.find(item =>
         item.productId === productId &&
         JSON.stringify(item.selectedIngredients || []) === JSON.stringify(selectedIngredients) &&
+        JSON.stringify(item.addedIngredients || []) === JSON.stringify(addedIngredients) &&
+        JSON.stringify(item.removedIngredients || []) === JSON.stringify(removedIngredients) &&
         (item.comment || '') === comment
     );
 
     if (existing) {
         existing.quantity += 1;
     } else {
-        cart.push({ productId, name, price, quantity: 1, selectedIngredients, comment });
+        cart.push({
+            productId,
+            name,
+            price,
+            quantity: 1,
+            selectedIngredients,
+            addedIngredients,
+            removedIngredients,
+            comment
+        });
     }
 
     localStorage.setItem('burgerCart', JSON.stringify(cart));
@@ -107,8 +126,11 @@ function renderCart() {
         total      += itemTotal;
         totalItems += item.quantity;
 
-        const ingLine = item.selectedIngredients?.length
-            ? `<span class="cart-item-extras">+ ${item.selectedIngredients.map(i => i.name).join(', ')}</span>`
+        const addedLine = item.addedIngredients?.length
+            ? `<span class="cart-item-extras">Ekstra: ${item.addedIngredients.map(i => i.name).join(', ')}</span>`
+            : '';
+        const removedLine = item.removedIngredients?.length
+            ? `<span class="cart-item-removed">Uden: ${item.removedIngredients.map(i => i.name).join(', ')}</span>`
             : '';
         const commentLine = item.comment
             ? `<span class="cart-item-comment">💬 ${item.comment}</span>`
@@ -121,7 +143,8 @@ function renderCart() {
                     <span class="cart-item-name">${item.name}</span>
                     <span class="cart-item-price">${itemTotal} kr.</span>
                     <span class="cart-item-unit-price">${item.quantity}x á ${item.price} kr.</span>
-                    ${ingLine}
+                    ${addedLine}
+                    ${removedLine}
                     ${commentLine}
                 </div>
                 <div class="cart-item-right">

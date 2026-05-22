@@ -11,11 +11,17 @@ cart.forEach(item => {
     row.innerHTML = `<span>${item.quantity}× ${item.name}</span><span>${item.price * item.quantity} kr.</span>`;
     itemsEl.appendChild(row);
 
-    // Vis ekstra ingredienser og kommentar hvis valgt
-    if (item.selectedIngredients?.length) {
+    // Vis ændringer i ingredienser og kommentar hvis valgt
+    if (item.addedIngredients?.length) {
         const extRow = document.createElement('div');
         extRow.className = 'order-summary-row order-summary-extra';
-        extRow.innerHTML = `<span style="padding-left:1rem;font-size:0.78rem;">+ ${item.selectedIngredients.map(i => i.name).join(', ')}</span>`;
+        extRow.innerHTML = `<span style="padding-left:1rem;font-size:0.78rem;">Ekstra: ${item.addedIngredients.map(i => i.name).join(', ')}</span>`;
+        itemsEl.appendChild(extRow);
+    }
+    if (item.removedIngredients?.length) {
+        const extRow = document.createElement('div');
+        extRow.className = 'order-summary-row order-summary-extra';
+        extRow.innerHTML = `<span style="padding-left:1rem;font-size:0.78rem;">Uden: ${item.removedIngredients.map(i => i.name).join(', ')}</span>`;
         itemsEl.appendChild(extRow);
     }
     if (item.comment) {
