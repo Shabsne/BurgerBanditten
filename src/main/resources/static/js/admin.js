@@ -29,7 +29,6 @@ function showScreen(id, btn) {
     document.getElementById('screen-' + id).classList.add('visible');
     if (btn) btn.classList.add('active');
     if (id === 'catalog'     && !allProducts.length)     loadCatalog();
-    if (id === 'statistics') loadSalesStatistics();
     if (id === 'ingredients' && !ingredientsLoaded)      loadIngredientList();
     if (id === 'hours') { loadWeeklySchedule(); loadHolidays(); }
 }
@@ -191,6 +190,7 @@ let editingOrderId = null;
 
 async function openEditOrderModal(orderId) {
     editingOrderId = orderId;
+
     try {
         const res = await api(`/api/orders/${orderId}`);
         if (!res.ok) throw new Error('Kunne ikke hente ordre');
@@ -228,66 +228,43 @@ function closeEditOrderModal() {
     editingOrderId = null;
 }
 
-// ── Catalog ──────────────────────────────────────
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('da-DK', {
-        style: 'currency',
-        currency: 'DKK'
-    }).format(amount ?? 0);
-}
+async function saveEditOrder() {
+    if (!editingOrderId) return;
 
-function renderSalesStatistics(statistics) {
-    document.getElementById('total-revenue').textContent = formatCurrency(statistics.totalRevenue);
+    const comment = document.getElementById('edit-comment').value.trim();
+    const pickUpTime = document.getElementById('edit-pickup-time').value;
 
-    const tableBody = document.getElementById('product-sales-body');
-    tableBody.innerHTML = '';
-
-    if (!statistics.productSales || statistics.productSales.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="3">Ingen salg i perioden</td></tr>';
-        return;
-    }
-
-    statistics.productSales.forEach((product, index) => {
-        const row = document.createElement('tr');
-        const rankCell = document.createElement('td');
-        const productCell = document.createElement('td');
-        const quantityCell = document.createElement('td');
-
-        rankCell.textContent = `#${index + 1}`;
-        productCell.textContent = product.productName;
-        quantityCell.textContent = product.quantitySold;
-        quantityCell.className = 'quantity-cell';
-
-        row.append(rankCell, productCell, quantityCell);
-        tableBody.appendChild(row);
+    const items = [...document.querySelectorAll('.edit-item-row')].map(row => {
+        return {
+            productId: parseInt(row.getAttribute('data-product-id')),
+            quantity: parseInt(row.querySelector('.edit-item-qty').value)
+        };
     });
-}
-
-async function loadSalesStatistics() {
-    const from = document.getElementById('statistics-from').value;
-    const to = document.getElementById('statistics-to').value;
-    const params = new URLSearchParams();
-
-    if (from) params.set('from', from);
-    if (to) params.set('to', to);
 
     try {
-        const res = await api(`/api/orders/statistics?${params.toString()}`);
-        if (!res.ok) throw new Error('Kunne ikke hente salgsstatistik');
-        renderSalesStatistics(await res.json());
+        const res = await api(`/api/orders/${editingOrderId}/update`, {
+            method: 'PUT',
+            body: JSON.stringify({ comment, pickUpTime, items })
+        });
+
+        if (!res.ok) throw new Error('Status ' + res.status);
+
+        showToast('Ordre opdateret ✓');
+        closeEditOrderModal();
+        loadActiveOrders();
+        loadPendingOrders();
     } catch (e) {
-        document.getElementById('product-sales-body').innerHTML =
-            '<tr><td colspan="3">Kunne ikke hente statistik - prov igen</td></tr>';
-        showToast(e.message || 'Kunne ikke hente statistik', true);
+        showToast('Kunne ikke gemme ændringer på ordren', true);
+        console.error(e);
     }
 }
 
-function clearStatisticsFilter() {
-    document.getElementById('statistics-from').value = '';
-    document.getElementById('statistics-to').value = '';
-    loadSalesStatistics();
+// Alias hvis din HTML-knap bruger saveOrderChanges i stedet
+async function saveOrderChanges() {
+    await saveEditOrder();
 }
 
+// ── Catalog ──────────────────────────────────────
 let allProducts = [], allIngredients = [], activeFilter = 'ALL', editingId = null;
 
 async function loadCatalog() {
@@ -467,11 +444,9 @@ function renderIngredientList(ingredients) {
             <div>${ing.price} kr.</div>
             <div>${ing.inventory}</div>
             <div>
-                <button class="btn-sm" onclick="openEditIngredient(${ing.id}, '${ing.name}', ${ing.price}, ${ing.inventory}, ${ing.addOn})">Rediger</button>
                 <button class="btn-sm btn-danger" onclick="deleteIngredient(${ing.id})">✕</button>
-               </div>
-            </div>`).join('');
-
+            </div>
+        </div>`).join('');
 }
 
 async function createIngredient() {
@@ -488,12 +463,10 @@ async function createIngredient() {
             body: JSON.stringify({ name, price, inventory, addOn })
         });
         if (!res.ok) throw new Error('Status ' + res.status);
-
         showToast('Ingrediens oprettet ✓');
         document.getElementById('ing-name').value      = '';
         document.getElementById('ing-price').value     = '';
         document.getElementById('ing-inventory').value = '';
-
         ingredientsLoaded = false;
         allIngredients    = [];
         loadIngredientList();
@@ -509,45 +482,6 @@ async function deleteIngredient(id) {
         allIngredients = [];
         showToast('Ingrediens slettet');
     } catch (e) { showToast('Kunne ikke slette ingrediens', true); }
-}
-
-let editingIngredientId = null;
-
-function openEditIngredient(id, name, price, inventory, addOn) {
-    editingIngredientId = id;
-    document.getElementById('edit-ing-name').value      = name;
-    document.getElementById('edit-ing-price').value     = price;
-    document.getElementById('edit-ing-inventory').value = inventory;
-    document.getElementById('edit-ing-addon').checked   = addOn;
-    document.getElementById('edit-ingredient-modal-overlay').classList.add('open');
-}
-
-function closeEditIngredient() {
-    document.getElementById('edit-ingredient-modal-overlay').classList.remove('open');
-    editingIngredientId = null;
-}
-
-async function saveEditIngredient() {
-    const name      = document.getElementById('edit-ing-name').value.trim();
-    const price     = parseFloat(document.getElementById('edit-ing-price').value) || 0;
-    const inventory = parseInt(document.getElementById('edit-ing-inventory').value) || 0;
-    const addOn     = document.getElementById('edit-ing-addon').checked;
-
-    try {
-        const res = await api(`/api/ingredients/${editingIngredientId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ name, price, inventory, addOn })
-        });
-        if (!res.ok) throw new Error('Status ' + res.status);
-
-        showToast('Ingrediens opdateret ✓');
-        closeEditIngredient();
-        ingredientsLoaded = false;
-        allIngredients = [];
-        loadIngredientList();
-    } catch (e) {
-        showToast('Kunne ikke opdatere ingrediens', true);
-    }
 }
 
 // ── Opening Hours ────────────────────────────────
@@ -595,10 +529,7 @@ async function loadHolidays() {
     try {
         const holidays = await api('/admin/opening-hours/api/holidays').then(r => r.json());
         const list = document.getElementById('holiday-list');
-        if (!holidays.length) {
-            list.innerHTML = '<p>Ingen særdage registreret</p>';
-            return;
-        }
+        if (!holidays.length) { list.innerHTML = '<p>Ingen særdage registreret</p>'; return; }
         list.innerHTML = `<div class="hours-wrap">
             <div class="hours-table-head">Registrerede særdage</div>
             ${holidays.map(h => `
@@ -652,18 +583,14 @@ async function doLogout() {
     }
 }
 
-// ── Modal overlays close on backdrop click ───────
+// ── Modal overlay close on backdrop click ────────
 document.getElementById('product-modal-overlay').addEventListener('click', function (e) {
     if (e.target === this) closeProductModal();
 });
 
-// Forhindrer fejl hvis edit-order overlay ikke findes i HTML endnu
-const orderOverlay = document.getElementById('edit-order-modal-overlay');
-if (orderOverlay) {
-    orderOverlay.addEventListener('click', function (e) {
-        if (e.target === this) closeEditOrderModal();
-    });
-}
+document.getElementById('edit-order-modal-overlay').addEventListener('click', function (e) {
+    if (e.target === this) closeEditOrderModal();
+});
 
 // ── Init ─────────────────────────────────────────
 (async () => {
