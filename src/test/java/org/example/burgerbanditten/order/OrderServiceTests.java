@@ -2,10 +2,15 @@ package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.preorder.PreOrderService;
+import org.example.burgerbanditten.product.Product;
+import org.example.burgerbanditten.product.ProductRepository;
 import org.example.burgerbanditten.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,15 +21,17 @@ class OrderServiceTests {
 
     private OrderService orderService;
     private OrderRepository orderRepository;
+    private ProductRepository productRepository;
     private EmailService emailService;
     private PreOrderService preOrderService;
 
     @BeforeEach
     void setUp() {
         orderRepository = mock(OrderRepository.class);
+        productRepository = mock(ProductRepository.class);
         emailService     = mock(EmailService.class);
         preOrderService = mock(PreOrderService.class);
-        orderService     = new OrderService(orderRepository, emailService, preOrderService);
+        orderService = new OrderService(orderRepository, emailService, preOrderService, productRepository);
     }
 
     // ── Ikke-eksisterende ordre ──────────────────────────
@@ -92,6 +99,42 @@ class OrderServiceTests {
     }
 
     // ── Hjælper ──────────────────────────────────────────
+
+    // ISSUE #111
+    @Test
+    void skalReturnereSalgsstatistikForPeriode() {
+        Product burger = new Product();
+        burger.setId(1L);
+        burger.setName("Cheese Burger");
+
+        Product cola = new Product();
+        cola.setId(2L);
+        cola.setName("Coca Cola");
+
+        OrderItem burgerItem = new OrderItem();
+        burgerItem.setProduct(burger);
+        burgerItem.setQuantity(2);
+
+        Order order = new Order();
+        order.setPrice(183.0);
+        order.setOrderItems(List.of(burgerItem));
+
+        LocalDate from = LocalDate.of(2026, 5, 1);
+        LocalDate to = LocalDate.of(2026, 5, 18);
+
+        when(productRepository.findAll()).thenReturn(List.of(burger, cola));
+        when(orderRepository.findSalesOrders(
+                List.of(OrderStatus.ACCEPTED, OrderStatus.COMPLETED),
+                LocalDateTime.of(2026, 5, 1, 0, 0),
+                LocalDateTime.of(2026, 5, 19, 0, 0)
+        )).thenReturn(List.of(order));
+
+        var result = orderService.getSalesStatistics(from, to);
+
+        assertEquals(183.0, result.totalRevenue());
+        assertEquals(2, result.productSales().get(0).quantitySold());
+        assertEquals(0, result.productSales().get(1).quantitySold());
+    }
 
     private Order buildOrder(OrderStatus status) {
         User user = new User();

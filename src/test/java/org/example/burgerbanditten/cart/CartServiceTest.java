@@ -1,52 +1,98 @@
 package org.example.burgerbanditten.cart;
 
+import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class CartServiceTest {
+@ExtendWith(MockitoExtension.class) // Fortæller JUnit at vi bruger Mockito
+public class CartServiceTest {
 
-    private CartService cartService;
+    @Mock
     private CartRepository cartRepository;
+
+    @Mock
     private ProductRepository productRepository;
+
+    @Mock
     private CartItemRepository cartItemRepository;
 
-    @BeforeEach
-    void setUp() {
-        cartRepository = mock(CartRepository.class);
-        productRepository = mock(ProductRepository.class);
-        cartItemRepository = mock(CartItemRepository.class);
+    @Mock
+    private EmailService emailService;
 
-        cartService = new CartService(cartRepository, productRepository, cartItemRepository);
+    @InjectMocks
+    private CartService cartService; // Sprøjter automatisk de ovenstående @Mocks ind i servicen
+
+    @Test
+    void shouldAddProductToCart_WhenCartExists() {
+        // Arrange
+        Long cartId = 1L;
+        Long productId = 10L;
+
+        Cart cart = new Cart();
+        cart.setId(cartId);
+        cart.setCartItems(new ArrayList<>()); // Initialiser listen!
+
+        Product product = new Product();
+        product.setId(productId);
+        product.setPrice(59.0);
+
+        when(cartRepository.findById(cartId)).thenReturn(Optional.of(cart));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+
+        // Act
+        cartService.addProductToCart(cartId, productId, 2);
+
+        // Assert
+        // Vi verificerer, at det er CartItemRepository der gemmer, IKKE CartRepository
+        verify(cartItemRepository, times(1)).save(any(CartItem.class));
+
+        // Vi tjekker at varen faktisk blev tilføjet til listen i vores objekt
+        assertEquals(1, cart.getCartItems().size());
     }
 
     @Test
-    void shouldAddProductToCart() {
-        // --- ARRANGE ---
-        Cart mockCart = new Cart();
-        mockCart.setCartItems(new ArrayList<>());
+    void shouldDeleteItem_WhenQuantityIsOne() {
+        // Arrange
+        Long itemId = 1L;
+        CartItem item = new CartItem();
+        item.setQuantity(1);
 
-        Product mockProduct = new Product();
-        mockProduct.setName("Cheeseburger");
+        when(cartItemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
-        when(cartRepository.findById(1L)).thenReturn(Optional.of(mockCart));
-        when(productRepository.findById(10L)).thenReturn(Optional.of(mockProduct));
+        // Act
+        cartService.removeOrReduceItem(itemId);
 
-        // --- ACT ---
-        cartService.addProductToCart(1L, 10L, 2);
+        // Assert
+        verify(cartItemRepository, times(1)).delete(item);
+        verify(cartItemRepository, never()).save(any());
+    }
 
-        // --- ASSERT ---
-        assertEquals(1, mockCart.getCartItems().size());
+    @Test
+    void shouldReduceQuantity_WhenQuantityIsMoreThanOne() {
+        // Arrange
+        Long itemId = 1L;
+        CartItem item = new CartItem();
+        item.setQuantity(3);
 
-        // Nu er den ikke rød længere, fordi feltet er tilgængeligt i hele klassen
-        verify(cartItemRepository, times(1)).save(any(CartItem.class));
+        when(cartItemRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        // Act
+        cartService.removeOrReduceItem(itemId);
+
+        // Assert
+        assertEquals(2, item.getQuantity(), "Antallet skal trækkes fra med 1");
+        verify(cartItemRepository, times(1)).save(item);
+        verify(cartItemRepository, never()).delete(any());
     }
 }

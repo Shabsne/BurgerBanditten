@@ -1,308 +1,236 @@
+// menu.js — bruger burger.css klassenavne
+
 async function fetchProducts() {
-
     try {
-
-        const response = await fetch("api/products/menu")
-
-        if (!response.ok) {
-            throw new Error("Could not fetch products");
-        }
-
-        const products = await response.json();
-
-        renderMenu(products);
-
-    } catch (error) {
-        console.error(error);
-
-        document.body.innerHTML += `<p>Kunne ikke hente menuen</p>`;
-
+        const res = await fetch('/api/products/menu', { credentials: 'include' });
+        if (!res.ok) throw new Error('Kunne ikke hente produkter');
+        renderMenu(await res.json());
+    } catch (e) {
+        console.error(e);
+        document.body.insertAdjacentHTML('beforeend', '<p style="text-align:center;padding:2rem;">Kunne ikke hente menuen</p>');
     }
 }
 
 function renderMenu(products) {
-
-    const burgers = products.filter(product => product.category === "BURGER");
-
-    const drinks = products.filter(product => product.category === "DRINK");
-
-    const sides = products.filter(product => product.category === "SIDES");
-
-    renderProducts(burgers, "burger-container");
-
-    renderProducts(drinks, "drink-container");
-
-    renderProducts(sides, "side-container")
+    renderProducts(products.filter(p => p.category === 'BURGER'), 'burger-container');
+    renderProducts(products.filter(p => p.category === 'DRINK'),  'drink-container');
+    renderProducts(products.filter(p => p.category === 'SIDE'),   'side-container');
 }
-
 
 function renderProducts(products, containerId) {
     const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
 
-    console.log(containerId);
-    console.log(container);
+    if (!products.length) {
+        container.innerHTML = '<div class="empty-state"><p>Ingen produkter her endnu</p></div>';
+        return;
+    }
 
-    container.innerHTML = "";
-
-    products.forEach(product => {
+    products.forEach(p => {
+        const imgContent = p.image
+            ? `<img src="${p.image}" alt="${p.name}">`
+            : '🍔';
 
         container.innerHTML += `
             <div class="product-card">
-            
-            ${product.image ? `<img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover">` : ''}            
-
-            <h3>${product.name}</h3>
-            
-            <p>${product.description}</p>
-            
-            <p>${product.price} kr.</p>
-            
-            <button onclick="showProduct(${product.id})">Se mere</button>
-            <button class="admin-button" style="display: none" onclick="showUpdateModal(${product.id})">Rediger</button>
-            <button class="admin-button" style="display: none" onclick="deleteProduct(${product.id})">Slet</button>
-        </div>`
-    })
+                <div class="product-card-img">${imgContent}</div>
+                <div class="product-card-body">
+                    <div class="product-card-name">${p.name}</div>
+                    <div class="product-card-desc">${p.description ?? ''}</div>
+                    <div class="product-card-price">${p.price} kr.</div>
+                </div>
+                <div class="product-card-actions">
+                    <button class="btn-sm" onclick="showProduct(${p.id})">Se mere</button>
+                    <button class="btn-add-cart" onclick="addToCart(${p.id}, '${p.name}', ${p.price})">+ Tilføj</button>
+                    <button class="btn-sm admin-only hidden" onclick="showUpdateModal(${p.id})">Rediger</button>
+                    <button class="btn-sm btn-danger admin-only hidden" onclick="deleteProduct(${p.id})">Slet</button>
+                </div>
+            </div>`;
+    });
 }
 
 async function showProduct(id) {
-
     try {
-
-        const response = await fetch(`/api/products/product/${id}`);
-
-        if (!response.ok) {
-            throw new Error("Could not fetch product");
-        }
-
-        const product = await response.json();
-
-        showProductModal(product);
-    } catch (error) {
-        console.error(error);
-
-        alert("Kunne ikke hente produkt")
+        const res = await fetch(`/api/products/product/${id}`, { credentials: 'include' });
+        if (!res.ok) throw new Error();
+        showProductModal(await res.json());
+    } catch (e) {
+        alert('Kunne ikke hente produkt');
     }
 }
 
 function showProductModal(product) {
-
-    const ingredientList = product.ingredients
-        .map(ingredient =>
-            `<li>${ingredient}</li>`)
-        .join("");
-
-    const modal = document.getElementById("modal");
-
-    modal.innerHTML =`
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()"> &times;</span>
-        
-        <h2>${product.name}</h2>
-        
-        <p>${product.description}</p>
-        
-        <p>Pris: ${product.price} kr.</p>
-        
-        <p>Kategori: ${product.category}</p>
-        
-        <h3>Ingredienser</h3>
-        
-        <ul>
-            ${ingredientList}
-        </ul>
-        
+    const ingredientList = (product.ingredients || []).map(i => `<li>${i}</li>`).join('');
+    const modal = document.getElementById('modal');
+    modal.querySelector('#modal-content').innerHTML = `
+        <div class="modal-header">
+            <div class="modal-title">${product.name}</div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
         </div>
-    
+        <p>${product.description}</p>
+        <p>${product.price} kr.</p>
+        <p>Kategori: ${product.category}</p>
+        ${ingredientList ? `<h3>Ingredienser</h3><ul>${ingredientList}</ul>` : ''}
     `;
-
-    modal.style.display ="block";
+    modal.classList.add('open');
 }
 
 function closeModal() {
-
-    const modal = document.getElementById("modal");
-
-    modal.style.display = "none";
+    document.getElementById('modal').classList.remove('open');
 }
 
 async function showUpdateModal(id) {
-
     try {
+        const [productRes, categoriesRes, ingredientsRes] = await Promise.all([
+            fetch(`/api/products/product/${id}`, { credentials: 'include' }),
+            fetch('/api/products/categories', { credentials: 'include' }),
+            fetch('/api/products/ingredients', { credentials: 'include' })
+        ]);
+        const product     = await productRes.json();
+        const categories  = await categoriesRes.json();
+        const ingredients = await ingredientsRes.json();
 
-        const response = await fetch(`/api/products/product/${id}`);
+        const catOptions = categories.map(c =>
+            `<option value="${c}" ${c === product.category ? 'selected' : ''}>${c}</option>`).join('');
 
-        if (!response.ok) {
-            throw new Error("Could not fetch product")
-        }
+        const ingCheckboxes = ingredients.map(ing => `
+            <label class="ing-chip">
+                <input type="checkbox" name="ingredients" value="${ing.id}"
+                    ${product.ingredients?.includes(ing.name) ? 'checked' : ''}>
+                ${ing.name}
+            </label>`).join('');
 
-        const product = await response.json();
-        const categories = await fetch("/api/products/categories").then(r => r.json());
-        const ingredients = await fetch("/api/products/ingredients").then(r => r.json());
-
-        const categoryOptions = categories.map(category => `
-            <option value="${category}" ${product.category == category ? "selected" : ""}>
-                ${category}
-            </option>
-        `).join("")
-
-
-        const ingredientCheckboxes = ingredients.map(ingredient => `
-        <label>
-            <input type="checkbox" name="ingredients" value="${ingredient.id}"
-                ${product.ingredients.includes(ingredient.name) ? "checked" : ""}>
-            ${ingredient.name}
-        </label>
-        `).join("");
-
-        const modal = document.getElementById("update-modal");
-
-        modal.innerHTML = `
-        <div class="modal-content">
-                <span class="close" onclick="closeUpdateModal()">&times;</span>
-                <h2>Rediger produkt</h2>
+        const modal = document.getElementById('update-modal');
+        modal.querySelector('#update-modal-content').innerHTML = `
+            <div class="modal-header">
+                <div class="modal-title">Rediger produkt</div>
+                <button class="modal-close" onclick="closeUpdateModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Navn</label>
                 <input type="text" id="update-name" value="${product.name}">
+            </div>
+            <div class="form-group">
+                <label>Beskrivelse</label>
                 <input type="text" id="update-description" value="${product.description}">
+            </div>
+            <div class="form-group">
+                <label>Pris (kr)</label>
                 <input type="number" id="update-price" value="${product.price}">
-                <select id="update-category">${categoryOptions}</select>
-                <label>
-                    <input type="checkbox" id="update-lunchOffer" ${product.lunchOffer ? "checked" : ""}>
-                    Frokosttilbud
+            </div>
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="update-category">${catOptions}</select>
+            </div>
+            <div class="form-group">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="update-lunchOffer" ${product.lunchOffer ? 'checked' : ''}>
+                    <div class="toggle-track"></div>
+                    <span>Frokosttilbud</span>
                 </label>
-                <fieldset id="update-ingredients">
-                    <legend>Ingredienser</legend>
-                    ${ingredientCheckboxes}
-                </fieldset>
-                <input type="file" id="update-image" accept="image/*" onchange="previewUpdateImage(this)">
-                    ${product.image ? `
-                        <img src="${product.image}" style="width: 100px;" id="update-preview">
-                        <button onclick="removeImage(${product.id})">Fjern billede</button>
-                            ` : '<p id="no-image-text">Intet billede</p>'}
-                <button onclick="updateProduct(${product.id})">Gem ændringer</button>
+            </div>
+            <div class="form-group">
+                <label>Ingredienser</label>
+                <div class="ingredients-grid">${ingCheckboxes}</div>
+            </div>
+            <div class="form-group">
+                <label>Nyt billede (valgfrit)</label>
+                <input type="file" id="update-image" accept="image/*">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="updateProduct(${product.id})">Gem ændringer</button>
+                <button class="btn-secondary" onclick="closeUpdateModal()">Annuller</button>
             </div>
         `;
-
-        modal.style.display = "block";
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert("Kunne ikke hente produkt")
+        modal.classList.add('open');
+    } catch (e) {
+        alert('Kunne ikke hente produkt');
     }
 }
 
-
 async function updateProduct(id) {
-
-    const fileInput = document.getElementById("update-image");
+    const fileInput = document.getElementById('update-image');
     const file = fileInput.files[0];
+    const image = file ? await new Promise(res => {
+        const r = new FileReader(); r.onloadend = () => res(r.result); r.readAsDataURL(file);
+    }) : null;
 
-    const toBase64 = file => new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-    });
-
-    const image = file ? await toBase64(file) : null
-
-    const updatedProduct = {
-        name: document.getElementById("update-name").value,
-        description: document.getElementById("update-description").value,
-        price: parseFloat(document.getElementById("update-price").value),
-        category: document.getElementById("update-category").value,
-        ingredients: [...document.querySelectorAll("input[name='ingredients']:checked")]
-            .map(checkbox => parseInt(checkbox.value)),
-        lunchOffer: document.getElementById("update-lunchOffer").checked,
-        image: image
+    const payload = {
+        name:        document.getElementById('update-name').value,
+        description: document.getElementById('update-description').value,
+        price:       parseFloat(document.getElementById('update-price').value),
+        category:    document.getElementById('update-category').value,
+        ingredients: [...document.querySelectorAll('input[name="ingredients"]:checked')].map(cb => parseInt(cb.value)),
+        lunchOffer:  document.getElementById('update-lunchOffer').checked,
+        image
     };
 
     try {
-        const response = await fetch(`/api/products/admin/product/update/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json"},
-            body: JSON.stringify(updatedProduct)
+        const res = await fetch(`/api/products/admin/product/update/${id}`, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
-
-        if (!response.ok) {
-            throw new Error("Could not update product");
-        }
-
+        if (!res.ok) throw new Error();
         closeUpdateModal();
-        await fetchProducts();
-        await checkAdmin();
-
-
-    } catch (error) {
-        console.error(error);
-
-        alert("Kunne ikke opdatere produkt")
+        fetchProducts();
+    } catch (e) {
+        alert('Kunne ikke opdatere produkt');
     }
 }
 
 function closeUpdateModal() {
-    const modal = document.getElementById("update-modal");
-    modal.style.display = "none";
+    document.getElementById('update-modal').classList.remove('open');
 }
 
 async function deleteProduct(id) {
-    if (!confirm("Er du sikker på at du vil slette dette produkt?")) {
-        return;
-    }
-
+    if (!confirm('Er du sikker på at du vil slette dette produkt?')) return;
     try {
-        const response = await fetch(`/api/products/admin/product/delete/${id}`, {
-            method: "DELETE"
+        const res = await fetch(`/api/products/admin/product/delete/${id}`, {
+            method: 'DELETE', credentials: 'include'
         });
-
-        if (!response.ok) {
-            throw new Error("Could not delete product");
-        }
-
+        if (!res.ok) throw new Error();
         fetchProducts();
-
-    } catch (error) {
-        console.error(error);
-        alert("Kunne ikke slette produkt");
+    } catch (e) {
+        alert('Kunne ikke slette produkt');
     }
 }
 
 async function checkAdmin() {
-
     try {
-        const response = await fetch("/api/users/is-admin");
-
-        const isAdmin = await response.json();
+        const res  = await fetch('/api/users/is-admin', { credentials: 'include' });
+        const isAdmin = await res.json();
+        const loggedIn = sessionStorage.getItem('loggedIn') === 'true';
 
         if (isAdmin) {
-
-            document.querySelectorAll(".admin-button").forEach(btn => {
-                btn.style.display = "block";
-            });
+            document.getElementById('admin-link').classList.remove('hidden');
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
         }
+        if (loggedIn) {
+            document.getElementById('login-btn').classList.add('hidden');
+            document.getElementById('logout-btn').classList.remove('hidden');
+        }
+    } catch (e) { /* ignore */ }
+}
 
-    } catch (error) {
-
-        console.error(error);
-
+async function doLogout() {
+    try {
+        await fetch('/api/users/logout', { method: 'POST', credentials: 'include' });
+    } finally {
+        sessionStorage.clear();
+        window.location.href = '/menu.html';
     }
 }
 
+// Luk modal ved klik på overlay
+document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+document.getElementById('update-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeUpdateModal();
+});
 
-window.onclick = function (event) {
-    const modal = document.getElementById("modal");
-    const updateModal = document.getElementById("update-modal")
-
-    if (event.target === modal) {
-        modal.style.display = "none";
-    }
-
-    if (event.target === updateModal) {
-        updateModal.style.display = "none";
-    }
-}
-
-async function init() {
-    await fetchProducts();
-    await checkAdmin();
-}
-init();
+fetchProducts();
+checkAdmin();

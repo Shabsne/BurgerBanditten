@@ -1,8 +1,5 @@
 package org.example.burgerbanditten.Security;
 
-
-import org.example.burgerbanditten.user.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -11,87 +8,98 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-    public class SecurityConfig {
+public class SecurityConfig {
 
-        @Autowired
-        private CustomUserDetailsService customUserDetailsService;
-
-        // BCrypt – krypterer adgangskoder
-        @Bean
-        public PasswordEncoder passwordEncoder() {
-            return new BCryptPasswordEncoder();
-        }
-
-        // AuthenticationManager – bruges til login
-        @Bean
-        public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-            return config.getAuthenticationManager();
-        }
-
-        @Bean
-        public WebSecurityCustomizer webSecurityCustomizer() {
-            return web -> web.ignoring().requestMatchers("/h2-console/**");
-        }
-
-        @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-            http
-                    .csrf(csrf -> csrf.disable())
-                    .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-                    .authorizeHttpRequests(auth -> auth
-
-                            // Alle kan se disse sider
-                            .requestMatchers(
-                                    "/login.html",
-                                    "/register.html",
-                                    "/menu.html",
-                                    "/css/**",
-                                    "/js/**"
-                            ).permitAll()
-
-                            .requestMatchers("/api/users/is-admin").permitAll()
-
-                            .requestMatchers(HttpMethod.GET, "/api/ingredients/**").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/api/ingredients/**").hasRole("ADMIN")
-
-                            .requestMatchers(HttpMethod.GET,
-                                    "/menu",
-                                    "/product/**",
-                                    "/categories",
-                                    "/ingredients")
-                            .permitAll()
-
-                            .requestMatchers(HttpMethod.GET, "/h2-console/**").permitAll()
-
-
-                            // Alle kan registrere og logge ind
-                            .requestMatchers(
-                                    "/api/users/register",
-                                    "/api/users/login",
-                                    "/api/users/forgot-password"
-                            ).permitAll()
-
-                            // Alle kan se menuen og bestille som gæst
-                            .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                            .requestMatchers("/api/orders/guest/**").permitAll()
-
-                            // Kun ADMIN må tilgå admin endpoints
-                            .requestMatchers("/admin/**").hasRole("ADMIN")
-
-                            // CUSTOMER og ADMIN kan bestille
-                            .requestMatchers("/api/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
-
-                            // Alt andet kræver login
-                            .anyRequest().authenticated()
-                    );
-
-            return http.build();
-        }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring().requestMatchers(
+                "/favicon.ico",
+                "/**/favicon.ico",
+                "/css/**",
+                "/js/**"
+        );
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .authorizeHttpRequests(auth -> auth
+
+                        // ── Statiske HTML-sider ────────────────────────
+                        .requestMatchers(
+                                "/login.html", "/register.html",
+                                "/menu.html", "/checkout.html", "/admin.html"
+                        ).permitAll()
+
+                        // ── Offentlige GET-endpoints ───────────────────
+                        .requestMatchers(HttpMethod.GET,
+                                "/menu", "/product/**", "/categories",
+                                "/ingredients", "/opening-hours/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+
+                        // ── Bruger-endpoints (login, register osv.) ────
+                        .requestMatchers(
+                                "/api/users/register",
+                                "/api/users/login",
+                                "/api/users/logout",
+                                "/api/users/forgot-password",
+                                "/api/users/is-admin"
+                        ).permitAll()
+
+                        // ── Gæst checkout ──────────────────────────────
+                        .requestMatchers("/api/orders/guest/checkout").permitAll()
+
+                        // ── Bestillingsstatus – alle må se om det er åbent
+                        .requestMatchers(HttpMethod.GET, "/api/orders/status").permitAll()
+
+                        // ── Forudbestilling validering ─────────────────
+                        .requestMatchers(HttpMethod.GET,  "/api/preorder/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/preorder/validate").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/preorder/next-available").permitAll()
+
+                        // ── Admin-only: bestillings-switch ─────────────
+                        .requestMatchers("/api/orders/admin/**").hasRole("ADMIN")
+
+                        // ── Admin-only: ordrer ─────────────────────────
+                        .requestMatchers(
+                                "/api/orders/pending",
+                                "/api/orders/active",
+                                "/api/orders/*/accept"
+                        ).hasRole("ADMIN")
+
+                        // ── Admin-only: produkter & åbningstider ───────
+                        .requestMatchers("/api/products/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/opening-hours/**").hasRole("ADMIN")
+
+                        // ── Logget-ind brugere: checkout ───────────────
+                        .requestMatchers("/api/orders/checkout").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // ── Alt andet kræver login ─────────────────────
+                        .anyRequest().authenticated()
+                );
+
+        return http.build();
+    }
+}

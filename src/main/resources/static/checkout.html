@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout – BurgerBanditten</title>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/burger.css">
+</head>
+<body class="bg-glow page-center">
+
+<div class="card auth-card fade-up">
+
+    <div class="logo">Burger<span>Banditten</span></div>
+    <div class="subtitle">Gæst checkout — Afhentning</div>
+
+    <form id="checkoutForm" novalidate>
+
+        <div class="form-group">
+            <label for="fullName">Fuldt navn</label>
+            <input type="text" id="fullName" placeholder="Eks. Anders Jensen" autocomplete="name">
+            <div class="error-msg" id="nameError"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Telefonnummer</label>
+            <input type="tel" id="phone" placeholder="Eks. 12 34 56 78" autocomplete="tel">
+            <div class="error-msg" id="phoneError"></div>
+        </div>
+
+        <div class="order-summary">
+            <div id="checkout-items"></div>
+            <div class="order-summary-total">
+                <span>Total</span>
+                <span id="checkout-total">0 kr.</span>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitOrderBtn">
+            <div class="spinner"></div>
+            <span class="btn-text">Gennemfør bestilling</span>
+        </button>
+
+    </form>
+
+    <div class="auth-footer">
+        <a href="/menu.html">← Tilbage til menuen</a>
+    </div>
+
+</div>
+
+<script src="/js/checkout.js"></script>
+</body>
+</html>

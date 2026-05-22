@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 public class ProductMapper {
 
     public ProductCardDTO toCardDTO(Product product) {
-
-        return new ProductCardDTO(product.getId(),
+        return new ProductCardDTO(
+                product.getId(),
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
@@ -17,6 +17,7 @@ public class ProductMapper {
         );
     }
 
+    // Bruges til getProduct og createProduct (Retunerer ProductDetailsDTO)
     public ProductDetailsDTO toDetailsDTO(Product product) {
         return new ProductDetailsDTO(
                 product.getId(),
@@ -27,8 +28,24 @@ public class ProductMapper {
                 product.getCategory(),
                 product.getIngredients()
                         .stream()
-                        .map(Ingredient::getName)
+                        .map(Ingredient::getName) // ProductDetailsDTO forventer List<String> (navne)
                         .toList()
+        );
+    }
+
+    // Bruges til updateProduct (Retunerer UpdateProductDTO)
+    public UpdateProductDTO toUpdateDTO(Product product) {
+        return new UpdateProductDTO(
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getLunchOffer(),
+                product.getCategory(),
+                product.getIngredients()
+                        .stream()
+                        .map(Ingredient::getId) // UpdateProductDTO forventer List<Long> (ID'er)
+                        .toList(),
+                product.getImage() // RETTET: Tilføjet det manglende 7. argument (String image)
         );
     }
 }

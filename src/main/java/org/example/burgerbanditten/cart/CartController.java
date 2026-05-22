@@ -1,5 +1,6 @@
 package org.example.burgerbanditten.cart;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,14 +13,26 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @PostMapping("/{cartId}/add")
-    public Cart addToCart(@PathVariable Long cartId,
-                          @RequestBody AddToCartRequest request) {
 
-        return cartService.addProductToCart(
+    @GetMapping("/{userId}")
+    public ResponseEntity<Cart> getCart(@PathVariable Long userId) {
+        return ResponseEntity.ok(cartService.getCartByUserId(userId));
+    }
+
+    @PostMapping("/{cartId}/add")
+    public ResponseEntity<Cart> addToCart(@PathVariable Long cartId,
+                                          @RequestBody AddToCartRequest request) {
+        return ResponseEntity.ok(cartService.addProductToCart(
                 cartId,
                 request.getProductId(),
-                request.getQuantity()
-        );
+                request.getQuantity()));
     }
+
+
+    @DeleteMapping("/item/{cartItemId}")
+    public ResponseEntity<Void> removeItem(@PathVariable Long cartItemId) {
+        cartService.removeOrReduceItem(cartItemId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

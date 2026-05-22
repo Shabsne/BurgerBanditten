@@ -7,7 +7,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
   <!-- Link til ekstern CSS -->
-  <link rel="stylesheet" href="stylev2.css">
+  <link rel="stylesheet" href="css/burger.css">
  </head>
 
 <body>
@@ -24,7 +24,10 @@
     Ventende <span class="badge" id="pending-count">0</span>
   </button>
   <button class="tab-btn" id="tab-active" onclick="switchTab('active')">
-    Aktive <span class="badge" id="active-count" style="background: var(--success)">0</span>
+    Aktive <span class="badge green" id="active-count">0</span>
+  </button>
+  <button class="tab-btn" id="tab-statistics" onclick="switchTab('statistics')">
+    Statistik
   </button>
 </div>
 
@@ -46,9 +49,46 @@
   </div>
 </div>
 
+<!-- STATISTICS PANEL -->
+<div class="panel" id="panel-statistics">
+  <div class="statistics-toolbar">
+    <label>
+      Fra
+      <input type="date" id="statistics-from">
+    </label>
+    <label>
+      Til
+      <input type="date" id="statistics-to">
+    </label>
+    <button class="btn-accept" type="button" onclick="loadSalesStatistics()">Filtrer</button>
+    <button class="btn-secondary" type="button" onclick="clearStatisticsFilter()">Ryd</button>
+  </div>
+
+  <div class="statistics-summary">
+    <span>Samlet omsaetning</span>
+    <strong id="total-revenue">0,00 kr.</strong>
+  </div>
+
+  <div class="statistics-table-wrap">
+    <table class="statistics-table">
+      <thead>
+      <tr>
+        <th>Produkt</th>
+        <th>Antal solgt</th>
+      </tr>
+      </thead>
+      <tbody id="product-sales-body">
+      <tr>
+        <td colspan="2">Henter statistik...</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <!-- TOAST CONTAINER -->
 <div id="toast-container"></div>
 
-<script src="/AdminOrders.js"></script>
+<script src="/js/adminOrders.js"></script>
 </body>
 </html>
