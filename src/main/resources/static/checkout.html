@@ -29,11 +29,44 @@
             <div class="error-msg" id="phoneError"></div>
         </div>
 
+        <!-- Ordreoversigt -->
         <div class="order-summary">
             <div id="checkout-items"></div>
             <div class="order-summary-total">
                 <span>Total</span>
                 <span id="checkout-total">0 kr.</span>
+            </div>
+
+            <!-- ── Afhentning / Forudbestilling ── -->
+            <div class="preorder-section">
+                <p class="preorder-section-label">Hvornår skal det hentes?</p>
+                <div class="preorder-options">
+                    <label class="preorder-option">
+                        <input type="radio" name="delivery-time" value="asap" checked
+                               onchange="onDeliveryTimeChange(this)">
+                        <span>⚡ Hurtigst mulig!</span>
+                    </label>
+                    <label class="preorder-option">
+                        <input type="radio" name="delivery-time" value="preorder"
+                               onchange="onDeliveryTimeChange(this)">
+                        <span>📅 Forudbestilling</span>
+                    </label>
+                </div>
+
+                <!-- Folder ud når "Forudbestilling" vælges -->
+                <div id="preorder-fields" class="preorder-fields">
+                    <div class="form-group">
+                        <label for="pickup-date">Vælg dato</label>
+                        <input type="date" id="pickup-date" class="form-input">
+                        <div class="error-msg" id="dateError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vælg afhentningstidspunkt</label>
+                        <div id="time-slots-container" class="time-slots-grid"></div>
+                        <div class="error-msg" id="timeError"></div>
+                    </div>
+                </div>
             </div>
         </div>
 

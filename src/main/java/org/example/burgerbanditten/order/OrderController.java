@@ -92,6 +92,36 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getActiveOrders());
     }
 
+    // PUT afvis ordre
+    @PutMapping("/{orderId}/reject")
+    public ResponseEntity<?> rejectOrder(@PathVariable Long orderId) {
+        try {
+            return ResponseEntity.ok(orderService.rejectOrder(orderId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // PUT fuldfør ordre
+    @PutMapping("/{orderId}/complete")
+    public ResponseEntity<?> completeOrder(@PathVariable Long orderId) {
+        try {
+            return ResponseEntity.ok(orderService.completeOrder(orderId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // PUT opdater/ændre ordre
+    @PutMapping("/{orderId}")
+    public ResponseEntity<?> updateOrder(@PathVariable Long orderId, @RequestBody GuestOrderRequest request) {
+        try {
+            return ResponseEntity.ok(orderService.updateOrder(orderId, request));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+}
     @GetMapping("/statistics")
     public ResponseEntity<SalesStatisticsDto> getSalesStatistics(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
