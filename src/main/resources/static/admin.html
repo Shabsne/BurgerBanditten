@@ -28,7 +28,6 @@
   </nav>
 
   <div class="topbar-right">
-    <!-- Bestillings-switch toggle knap -->
     <button class="btn-sm" id="ordering-toggle" onclick="toggleOrdering()" style="margin-right: 0.5rem;">
       Henter...
     </button>
@@ -40,7 +39,6 @@
      SCREEN: ORDRER
 ══════════════════════════════════════════════ -->
 <main id="screen-orders" class="admin-screen visible page-content">
-
   <h2 class="page-heading">Ordrer</h2>
   <p class="page-subheading">Håndter indkommende og aktive bestillinger</p>
 
@@ -65,14 +63,12 @@
       <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div><div class="skel-line short"></div></div>
     </div>
   </div>
-
 </main>
 
 <!-- ══════════════════════════════════════════════
      SCREEN: KATALOG
 ══════════════════════════════════════════════ -->
 <main id="screen-catalog" class="admin-screen page-content">
-
   <h2 class="page-heading">Produktkatalog</h2>
   <p class="page-subheading">Tilføj, rediger og slet produkter</p>
 
@@ -89,24 +85,18 @@
 
   <div class="catalog-wrap">
     <div class="catalog-header">
-      <div></div>
-      <div>Produkt</div>
-      <div>Kategori</div>
-      <div>Pris</div>
-      <div>Handlinger</div>
+      <div></div><div>Produkt</div><div>Kategori</div><div>Pris</div><div>Handlinger</div>
     </div>
     <div id="catalog-list">
       <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div></div>
     </div>
   </div>
-
 </main>
 
 <!-- ══════════════════════════════════════════════
      SCREEN: INGREDIENSER
 ══════════════════════════════════════════════ -->
 <main id="screen-ingredients" class="admin-screen page-content">
-
   <h2 class="page-heading">Ingredienser</h2>
   <p class="page-subheading">Opret og administrer ingredienser der kan tilknyttes produkter</p>
 
@@ -140,23 +130,18 @@
 
   <div class="ingredient-wrap">
     <div class="ingredient-header">
-      <div>Navn</div>
-      <div>Pris</div>
-      <div>Lager</div>
-      <div>Handling</div>
+      <div>Navn</div><div>Pris</div><div>Lager</div><div>Handling</div>
     </div>
     <div id="ingredient-list">
       <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div></div>
     </div>
   </div>
-
 </main>
 
 <!-- ══════════════════════════════════════════════
      SCREEN: BESTILLINGSVINDUE
 ══════════════════════════════════════════════ -->
 <main id="screen-hours" class="admin-screen page-content">
-
   <h2 class="page-heading">Bestillingsvindue</h2>
   <p class="page-subheading">Indstil ugentlige åbningstider og helligdage</p>
 
@@ -197,7 +182,6 @@
   </div>
 
   <div id="holiday-list"></div>
-
 </main>
 
 <!-- ══════════════════════════════════════════════
@@ -205,14 +189,11 @@
 ══════════════════════════════════════════════ -->
 <div class="modal-overlay" id="product-modal-overlay">
   <div class="modal-box">
-
     <div class="modal-header">
       <div class="modal-title" id="modal-title-text">Nyt produkt</div>
       <button class="modal-close" onclick="closeProductModal()">&times;</button>
     </div>
-
     <input type="hidden" id="modal-product-id">
-
     <div class="form-grid">
       <div class="form-group">
         <label for="p-name">Navn</label>
@@ -252,17 +233,43 @@
       </div>
       <div class="form-group full">
         <label>Ingredienser</label>
-        <div class="ingredients-grid" id="ingredients-grid">
-          <span>Henter...</span>
-        </div>
+        <div class="ingredients-grid" id="ingredients-grid"><span>Henter...</span></div>
       </div>
     </div>
-
     <div class="modal-footer">
       <button class="btn-primary" onclick="saveProduct()">Gem produkt</button>
       <button class="btn-secondary" onclick="closeProductModal()">Annuller</button>
     </div>
+  </div>
+</div>
 
+<!-- ══════════════════════════════════════════════
+     REDIGER ORDRE MODAL
+══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="edit-order-modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Rediger ordre <span id="edit-order-id"></span></div>
+      <button class="modal-close" onclick="closeEditOrderModal()">&times;</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label for="edit-comment">Kommentar</label>
+        <input type="text" id="edit-comment" placeholder="Fx navn og telefonnummer">
+      </div>
+      <div class="form-group full">
+        <label for="edit-pickup-time">Afhentingstidspunkt</label>
+        <input type="datetime-local" id="edit-pickup-time">
+      </div>
+      <div class="form-group full">
+        <label>Varer og antal</label>
+        <div id="edit-order-items" style="display:flex; flex-direction:column; gap:0.75rem;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveOrderChanges()">Gem ændringer</button>
+      <button class="btn-secondary" onclick="closeEditOrderModal()">Annuller</button>
+    </div>
   </div>
 </div>
 

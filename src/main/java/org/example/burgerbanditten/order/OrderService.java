@@ -4,6 +4,7 @@ import org.example.burgerbanditten.email.EmailService;
 import org.example.burgerbanditten.order.dto.GuestOrderRequest;
 import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
 import org.example.burgerbanditten.order.dto.ProductSalesDto;
+import org.example.burgerbanditten.order.dto.UpdateOrderRequest;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
@@ -118,6 +119,10 @@ public class OrderService {
         return orderRepository.findByOrderStatus(OrderStatus.ACCEPTED);
     }
 
+    public java.util.Optional<Order> getOrderById(Long orderId) {
+        return orderRepository.findById(orderId);
+    }
+
     // ── Forudbestilling ─────────────────────────────────────────────────
     public Order createOrderWithPickUpTime(Order order, String pickUpTimeString) {
         Order savedOrder = orderRepository.save(order);
@@ -131,6 +136,73 @@ public class OrderService {
         }
         return savedOrder;
     }
+
+    // ── Ændre eksisterende ordre (admin) ─────────────────────────────────
+    public Order updateOrder(Long orderId, UpdateOrderRequest request) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
+
+        // Kun ACCEPTED ordrer kan redigeres – ikke COMPLETED eller REJECTED
+        if (order.getOrderStatus() == OrderStatus.COMPLETED ||
+                order.getOrderStatus() == OrderStatus.REJECTED) {
+            throw new IllegalStateException(
+                    "Ordre #" + orderId + " kan ikke redigeres – status er " + order.getOrderStatus());
+        }
+
+        // Opdater kommentar hvis angivet
+        if (request.comment() != null && !request.comment().isBlank()) {
+            order.setComment(request.comment());
+        }
+
+        // Opdater afhentingstidspunkt hvis angivet
+        if (request.pickUpTime() != null && !request.pickUpTime().isBlank()) {
+            order.setPickUpTime(LocalDateTime.parse(request.pickUpTime()));
+        }
+
+        // Opdater varer og antal hvis angivet
+        if (request.items() != null && !request.items().isEmpty()) {
+
+            // Ryd eksisterende items (orphanRemoval sletter dem fra databasen)
+            order.getOrderItems().clear();
+
+            // Byg nye items
+            List<OrderItem> newItems = new ArrayList<>();
+            for (UpdateOrderRequest.UpdateOrderItem item : request.items()) {
+                Product product = productRepository.findById(item.productId())
+                        .orElseThrow(() -> new RuntimeException("Produkt ikke fundet: " + item.productId()));
+
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setProduct(product);
+                orderItem.setQuantity(item.quantity());
+                orderItem.setPrice(product.getPrice() * item.quantity());
+                newItems.add(orderItem);
+            }
+
+            order.getOrderItems().addAll(newItems);
+
+            // Genberegn totalpris
+            double total = newItems.stream().mapToDouble(OrderItem::getPrice).sum();
+            order.setPrice(total);
+        }
+
+        Order savedOrder = orderRepository.save(order);
+
+        // Notificér kunden hvis ordren har en bruger
+        if (order.getUser() != null) {
+            emailService.sendOrderUpdatedNotification(
+                    order.getUser().getMail(),
+                    order.getUser().getName(),
+                    order.getId()
+            );
+        }
+
+        return savedOrder;
+    }
+
+
+
 
     // ── Salgsstatistik ─────────────────────────────────────────────────
     public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {

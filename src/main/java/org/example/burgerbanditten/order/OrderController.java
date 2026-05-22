@@ -2,6 +2,7 @@ package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.order.dto.GuestOrderRequest;
 import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
+import org.example.burgerbanditten.order.dto.UpdateOrderRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +38,30 @@ public class OrderController {
                 "open", isNowOpen,
                 "message", isNowOpen ? "Bestillinger er nu åbne" : "Bestillinger er nu lukkede"
         ));
+    }
+
+
+    // GET – hent én specifik ordre (admin – bruges til rediger modal)
+    @GetMapping("/{orderId}")
+    public ResponseEntity<?> getOrderById(@PathVariable Long orderId) {
+        return orderService.getOrderById(orderId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // PUT – ændr en eksisterende ordre (kun admin)
+    @PutMapping("/{orderId}/update")
+    public ResponseEntity<?> updateOrder(
+            @PathVariable Long orderId,
+            @RequestBody UpdateOrderRequest request) {
+        try {
+            Order updated = orderService.updateOrder(orderId, request);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // POST gæstebestilling – tjekker switch inden bestilling oprettes

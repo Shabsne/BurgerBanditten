@@ -1,9 +1,6 @@
 package org.example.burgerbanditten.email;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
+import com.sendgrid.*;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
@@ -22,80 +19,81 @@ public class EmailService {
     private String fromEmail;
 
     private void sendEmail(String toEmail, String subject, String body) throws IOException {
-        Email from = new Email(fromEmail);
-        Email to = new Email(toEmail);
+        Email from    = new Email(fromEmail);
+        Email to      = new Email(toEmail);
         Content content = new Content("text/plain", body);
-        Mail mail = new Mail(from, subject, to, content);
+        Mail mail     = new Mail(from, subject, to, content);
 
-        SendGrid sg = new SendGrid(apiKey);
+        SendGrid sg   = new SendGrid(apiKey);
         Request request = new Request();
         request.setMethod(Method.POST);
         request.setEndpoint("mail/send");
         request.setBody(mail.build());
 
         Response response = sg.api(request);
-
         if (response.getStatusCode() >= 400) {
             throw new RuntimeException("Fejl ved afsendelse af email: " + response.getBody());
         }
     }
 
-    // Send bekræftelsesmail ved oprettelse
+    // Bekræftelsesmail ved oprettelse
     public void sendRegistrationConfirmation(String toEmail, String name) {
         try {
-            String subject = "Velkommen til BurgerBanditten!";
-            String body = "Hej " + name + "!\n\n"
-                    + "Din konto er blevet oprettet.\n"
-                    + "Velkommen til BurgerBanditten – vi glæder os til at se dig!\n\n"
-                    + "Mange hilsner,\nBurgerBanditten";
-            sendEmail(toEmail, subject, body);
+            sendEmail(toEmail,
+                    "Velkommen til BurgerBanditten!",
+                    "Hej " + name + "!\n\nDin konto er blevet oprettet.\nVelkommen til BurgerBanditten!\n\nMange hilsner,\nBurgerBanditten");
         } catch (IOException e) {
             throw new RuntimeException("Kunne ikke sende bekræftelsesmail", e);
         }
     }
 
-    // Send nulstillingsmail ved glemt adgangskode
+    // Nulstillingsmail
     public void sendPasswordReset(String toEmail, String resetLink) {
         try {
-            String subject = "Nulstil din adgangskode – BurgerBanditten";
-            String body = "Hej!\n\n"
-                    + "Vi har modtaget en anmodning om at nulstille din adgangskode.\n"
-                    + "Klik på linket herunder for at vælge en ny:\n\n"
-                    + resetLink + "\n\n"
-                    + "Hvis du ikke har anmodet om dette, kan du se bort fra denne email.\n\n"
-                    + "Mange hilsner,\nBurgerBanditten";
-            sendEmail(toEmail, subject, body);
+            sendEmail(toEmail,
+                    "Nulstil din adgangskode – BurgerBanditten",
+                    "Hej!\n\nKlik på linket for at nulstille din adgangskode:\n\n" + resetLink +
+                            "\n\nMange hilsner,\nBurgerBanditten");
         } catch (IOException e) {
             throw new RuntimeException("Kunne ikke sende nulstillingsmail", e);
         }
     }
 
-    // Send ordre-bekræftelse ved oprettelse
+    // Ordrebekræftelse
     public void sendOrderConfirmation(String toEmail, String name, Long orderId) {
         try {
-            String subject = "Din ordre er modtaget – BurgerBanditten";
-            String body = "Hej " + name + "!\n\n"
-                    + "Vi har modtaget din ordre #" + orderId + ".\n"
-                    + "Du vil modtage en besked når din ordre er klar til afhentning.\n\n"
-                    + "Mange hilsner,\nBurgerBanditten";
-            sendEmail(toEmail, subject, body);
+            sendEmail(toEmail,
+                    "Din ordre er modtaget – BurgerBanditten",
+                    "Hej " + name + "!\n\nVi har modtaget din ordre #" + orderId +
+                            ".\nDu vil modtage en besked når din ordre er klar.\n\nMange hilsner,\nBurgerBanditten");
         } catch (IOException e) {
-            throw new RuntimeException("Kunne ikke sende bekræftelse på din ordre", e);
+            throw new RuntimeException("Kunne ikke sende ordrebekræftelse", e);
         }
     }
 
-    // Send notifikation til kunden når admin accepterer ordren (#124 / #125)
+    // Notifikation når ordre accepteres
     public void sendOrderAcceptedNotification(String toEmail, String name, Long orderId) {
         try {
-            String subject = "Din ordre er accepteret – BurgerBanditten";
-            String body = "Hej " + name + "!\n\n"
-                    + "Godt nyt! Din ordre #" + orderId + " er blevet accepteret.\n"
-                    + "Vi er i gang med at klargøre den til dig.\n\n"
-                    + "Vi ses snart!\n"
-                    + "Mange hilsner,\nBurgerBanditten";
-            sendEmail(toEmail, subject, body);
+            sendEmail(toEmail,
+                    "Din ordre er accepteret – BurgerBanditten",
+                    "Hej " + name + "!\n\nDin ordre #" + orderId +
+                            " er blevet accepteret og er nu under behandling.\n\nMange hilsner,\nBurgerBanditten");
         } catch (IOException e) {
             throw new RuntimeException("Kunne ikke sende acceptnotifikation", e);
+        }
+    }
+
+    // Notifikation når ordre ændres af admin
+    public void sendOrderUpdatedNotification(String toEmail, String name, Long orderId) {
+        try {
+            sendEmail(toEmail,
+                    "Din ordre er blevet ændret – BurgerBanditten",
+                    "Hej " + name + "!\n\nDin ordre #" + orderId +
+                            " er blevet ændret af restauranten.\n" +
+                            "Har du spørgsmål, er du velkommen til at kontakte os.\n\n" +
+                            "Mange hilsner,\nBurgerBanditten");
+        } catch (IOException e) {
+            throw new RuntimeException("Kunne ikke sende ændringsnotifikation", e);
         }
     }
 }
