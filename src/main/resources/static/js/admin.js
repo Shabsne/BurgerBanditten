@@ -66,10 +66,10 @@ async function toggleOrdering() {
 function updateToggleBtn(isOpen) {
     const btn = document.getElementById('ordering-toggle');
     if (!btn) return;
-    btn.textContent = isOpen ? '🟢 Bestillinger åbne' : '🔴 Bestillinger lukket';
-    btn.style.background    = isOpen ? 'var(--success, #4CAF7D)' : 'var(--error, #FF5C5C)';
-    btn.style.color         = 'white';
-    btn.style.border        = 'none';
+    btn.textContent      = isOpen ? '🟢 Bestillinger åbne' : '🔴 Bestillinger lukket';
+    btn.style.background = isOpen ? 'var(--success, #4CAF7D)' : 'var(--error, #FF5C5C)';
+    btn.style.color      = 'white';
+    btn.style.border     = 'none';
 }
 
 // ── Order tabs ───────────────────────────────────
@@ -96,7 +96,10 @@ function buildOrderCard(order, isPending) {
 
     const footer = isPending
         ? `<button class="btn-accept" id="btn-${order.id}" onclick="acceptOrder(${order.id})">✓ Accepter</button>`
-        : `<span class="accepted-pill">✓ Accepteret</span>`;
+        : `<div style="display:flex; gap:0.5rem; align-items:center;">
+               <span class="accepted-pill">✓ Accepteret</span>
+               <button class="btn-sm" onclick="openEditOrderModal(${order.id})">✏️ Rediger</button>
+           </div>`;
 
     card.innerHTML = `
         <div class="card-header">
@@ -181,6 +184,48 @@ async function acceptOrder(orderId) {
         showToast(e.message || 'Fejl ved accept', true);
         if (btn) { btn.classList.remove('loading'); btn.textContent = '✓ Accepter'; }
     }
+}
+
+// ── Rediger ordre modal ──────────────────────────
+let editingOrderId = null;
+
+async function openEditOrderModal(orderId) {
+    editingOrderId = orderId;
+    try {
+        const res = await api(`/api/orders/${orderId}`);
+        if (!res.ok) throw new Error('Kunne ikke hente ordre');
+        const order = await res.json();
+
+        document.getElementById('edit-order-id').textContent   = '#' + orderId;
+        document.getElementById('edit-comment').value          = order.comment ?? '';
+        document.getElementById('edit-pickup-time').value      = order.pickUpTime
+            ? order.pickUpTime.substring(0, 16)
+            : '';
+
+        const itemsContainer = document.getElementById('edit-order-items');
+        itemsContainer.innerHTML = (order.orderItems || []).map(item => `
+            <div class="edit-item-row" data-product-id="${item.product?.id}">
+                <span>${item.product?.name ?? 'Produkt'}</span>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <label>Antal:</label>
+                    <input type="number"
+                           class="edit-item-qty"
+                           value="${item.quantity}"
+                           min="1"
+                           style="width:60px; padding:0.25rem; background:var(--input-bg); border:1px solid var(--border); border-radius:4px; color:var(--text);">
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('edit-order-modal-overlay').classList.add('open');
+    } catch (e) {
+        showToast('Kunne ikke hente ordredetaljer', true);
+    }
+}
+
+function closeEditOrderModal() {
+    document.getElementById('edit-order-modal-overlay').classList.remove('open');
+    editingOrderId = null;
 }
 
 // ── Catalog ──────────────────────────────────────
@@ -426,7 +471,7 @@ function renderIngredientList(ingredients) {
                 <button class="btn-sm btn-danger" onclick="deleteIngredient(${ing.id})">✕</button>
                </div>
             </div>`).join('');
-               
+
 }
 
 async function createIngredient() {
@@ -607,14 +652,18 @@ async function doLogout() {
     }
 }
 
-// ── Modal overlay close on backdrop click ────────
+// ── Modal overlays close on backdrop click ───────
 document.getElementById('product-modal-overlay').addEventListener('click', function (e) {
     if (e.target === this) closeProductModal();
 });
 
-document.getElementById('edit-ingredient-modal-overlay').addEventListener('click', function(e) {
-    if (e.target === this) closeEditIngredient();
-});
+// Forhindrer fejl hvis edit-order overlay ikke findes i HTML endnu
+const orderOverlay = document.getElementById('edit-order-modal-overlay');
+if (orderOverlay) {
+    orderOverlay.addEventListener('click', function (e) {
+        if (e.target === this) closeEditOrderModal();
+    });
+}
 
 // ── Init ─────────────────────────────────────────
 (async () => {
@@ -624,7 +673,7 @@ document.getElementById('edit-ingredient-modal-overlay').addEventListener('click
     } catch (e) { window.location.href = '/login.html'; return; }
 
     checkOpeningStatus();
-    loadOrderingStatus();      // ← hent bestillingsstatus ved opstart
+    loadOrderingStatus();
     loadPendingOrders();
     loadActiveOrders();
     loadIngredients();
