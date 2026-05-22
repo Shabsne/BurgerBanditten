@@ -7,47 +7,39 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/ingredients")
+@RequestMapping("/api/ingredients")
 public class IngredientController {
 
-    private final IngredientRepository ingredientRepository;
+    private final IngredientService service;
 
-    public IngredientController(IngredientRepository ingredientRepository) {
-        this.ingredientRepository = ingredientRepository;
+    public IngredientController(IngredientService service) {
+        this.service = service;
     }
 
-    // GET alle ingredienser — bruges i admin ingrediens-liste
     @GetMapping
-    public ResponseEntity<List<Ingredient>> getAll() {
-        return ResponseEntity.ok(ingredientRepository.findAll());
+    public ResponseEntity<List<Ingredient>> getIngredients() {
+        return ResponseEntity.ok(service.getIngredients());
     }
 
-    // POST opret ny ingrediens
-    @PostMapping
-    public ResponseEntity<Ingredient> create(@RequestBody Ingredient ingredient) {
-        ingredient.setId(null); // Undgå at overskrive eksisterende
-        Ingredient saved = ingredientRepository.save(ingredient);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    @GetMapping("/{id}")
+    public ResponseEntity<Ingredient> getIngredient(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getIngredient(id));
     }
 
-    // PUT opdater ingrediens
+
     @PutMapping("/{id}")
-    public ResponseEntity<Ingredient> update(@PathVariable Long id,
-                                             @RequestBody Ingredient ingredient) {
-        if (!ingredientRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        ingredient.setId(id);
-        return ResponseEntity.ok(ingredientRepository.save(ingredient));
+    public ResponseEntity<Ingredient> getIngredient(@PathVariable Long id, @RequestBody Ingredient updated) {
+        return ResponseEntity.ok(service.updateIngredient(id, updated));
     }
 
-    // DELETE slet ingrediens
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!ingredientRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        ingredientRepository.deleteById(id);
+    public ResponseEntity<Void> deleteIngredient(@PathVariable Long id) {
+        service.deleteIngredient(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<Ingredient> createIngredient(@RequestBody Ingredient ingredient) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.createIngredient(ingredient));
     }
 }

@@ -1,6 +1,11 @@
 package org.example.burgerbanditten.ingredient;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import org.example.burgerbanditten.product.Product;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "ingredients")
@@ -18,6 +23,10 @@ public class Ingredient {
 
     private boolean addOn;
 
+    @JsonBackReference
+    @ManyToMany(mappedBy = "ingredients")
+    private List<Product> products = new ArrayList<>();
+
     public Ingredient() {}
 
     public Ingredient(Long id, String name, double price, int inventory, boolean addOn) {
@@ -33,10 +42,12 @@ public class Ingredient {
     public double getPrice() { return price; }
     public int getInventory() { return inventory; }
     public boolean isAddOn() { return addOn; }
+    public List<Product> getProducts() { return products; }
 
     public void setId(Long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setPrice(double price) { this.price = price; }
     public void setInventory(int inventory) { this.inventory = inventory; }
     public void setAddOn(boolean addOn) { this.addOn = addOn; }
+    public void setProducts(List<Product> products) { this.products = products; }
 }
