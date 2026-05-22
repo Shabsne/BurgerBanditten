@@ -37,7 +37,7 @@ class OrderServiceTests {
     // ── Ikke-eksisterende ordre ──────────────────────────
 
     @Test
-    void skalKasteException_NårOrdreIkkeFindes() {
+    void skalKasteException_NaarOrdreIkkeFindes() {
         when(orderRepository.findById(99L)).thenReturn(Optional.empty());
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
@@ -50,7 +50,7 @@ class OrderServiceTests {
     // ── #128 – Allerede accepteret ordre ─────────────────
 
     @Test
-    void skalKasteException_NårOrdreAlleredeErAccepteret() {
+    void skalKasteException_NaarOrdreAlleredeErAccepteret() {
         Order order = buildOrder(OrderStatus.ACCEPTED);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
@@ -64,7 +64,7 @@ class OrderServiceTests {
     // ── Forkert status (fx COMPLETED) ────────────────────
 
     @Test
-    void skalKasteException_NårOrdreIkkeErPending() {
+    void skalKasteException_NaarOrdreIkkeErPending() {
         Order order = buildOrder(OrderStatus.COMPLETED);
         when(orderRepository.findById(2L)).thenReturn(Optional.of(order));
 
@@ -78,7 +78,7 @@ class OrderServiceTests {
     // ── #125 + #127 – Gyldig accept ──────────────────────
 
     @Test
-    void skalAcceptereOrdre_NårStatusErPending() {
+    void skalAcceptereOrdre_NaarStatusErPending() {
         Order order = buildOrder(OrderStatus.PENDING);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenReturn(order);
