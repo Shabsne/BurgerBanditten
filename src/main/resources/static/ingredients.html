@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingredienser</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<h1>Ingredienser</h1>
+
+<button onclick="openCreateModal()">Opret ingrediens</button>
+
+<table id="ingredient-table">
+  <thead>
+  <tr>
+    <th>Navn</th>
+    <th>Pris</th>
+    <th>Beholdning</th>
+    <th>Tilvalg</th>
+    <th>handlinger</th>
+  </tr>
+  </thead>
+  <tbody id="ingredient-body">
+  </tbody>
+</table>
+
+<p id="error-message" style="display: none; color: red">Kunne ikke hente ingredienser</p>
+
+<div id="edit-modal" style="display:none">
+  <div class="modal-content">
+    <span class="close" onclick="closeEditModal()">&times;</span>
+    <h2>Rediger ingrediens</h2>
+    <div>
+      <label>Navn</label>
+      <input type="text" id="edit-name" placeholder="Navn">
+    </div>
+    <div>
+      <label>Pris</label>
+      <input type="number" id="edit-price" placeholder="Pris" step="0.01">
+    </div>
+    <div>
+      <label>Beholdning</label>
+      <input type="number" id="edit-inventory" placeholder="Beholdning">
+    </div>
+    <label>
+      <input type="checkbox" id="edit-addOn"> Tilvalg
+    </label>
+    <button onclick="saveIngredient()">Gem ændringer</button>
+  </div>
+</div>
+
+<div id="create-modal" style="display:none">
+  <div class="modal-content">
+    <span class="close" onclick="closeCreateModal()">&times;</span>
+    <h2>Opret ingrediens</h2>
+    <div>
+      <label>Navn</label>
+      <input type="text" id="create-name" placeholder="Navn">
+    </div>
+    <div>
+      <label>Pris</label>
+      <input type="number" id="create-price" placeholder="Pris" step="0.01">
+    </div>
+    <div>
+      <label>Beholdning</label>
+      <input type="number" id="create-inventory" placeholder="Beholdning">
+    </div>
+    <label>
+      <input type="checkbox" id="create-addOn"> Tilvalg
+    </label>
+    <button onclick="createIngredient()">Opret</button>
+  </div>
+</div>
+<script src="/js/ingredients.js"></script>
+
+</body>
+</html>

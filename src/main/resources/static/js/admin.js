@@ -401,7 +401,7 @@ let ingredientsLoaded = false;
 
 async function loadIngredientList() {
     try {
-        const ingredients = await api('/api/admin/ingredients').then(r => r.json());
+        const ingredients = await api('/api/ingredients').then(r => r.json());
         renderIngredientList(ingredients);
         ingredientsLoaded = true;
     } catch (e) {
@@ -422,9 +422,11 @@ function renderIngredientList(ingredients) {
             <div>${ing.price} kr.</div>
             <div>${ing.inventory}</div>
             <div>
+                <button class="btn-sm" onclick="openEditIngredient(${ing.id}, '${ing.name}', ${ing.price}, ${ing.inventory}, ${ing.addOn})">Rediger</button>
                 <button class="btn-sm btn-danger" onclick="deleteIngredient(${ing.id})">✕</button>
-            </div>
-        </div>`).join('');
+               </div>
+            </div>`).join('');
+               
 }
 
 async function createIngredient() {
@@ -436,7 +438,7 @@ async function createIngredient() {
     if (!name) { showToast('Indtast et navn til ingrediensen', true); return; }
 
     try {
-        const res = await api('/api/admin/ingredients', {
+        const res = await api('/api/ingredients', {
             method: 'POST',
             body: JSON.stringify({ name, price, inventory, addOn })
         });
@@ -456,12 +458,51 @@ async function createIngredient() {
 async function deleteIngredient(id) {
     if (!confirm('Slet denne ingrediens? Den fjernes fra alle produkter der bruger den.')) return;
     try {
-        const res = await api(`/api/admin/ingredients/${id}`, { method: 'DELETE' });
+        const res = await api(`/api/ingredients/${id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error();
         document.getElementById('ing-row-' + id)?.remove();
         allIngredients = [];
         showToast('Ingrediens slettet');
     } catch (e) { showToast('Kunne ikke slette ingrediens', true); }
+}
+
+let editingIngredientId = null;
+
+function openEditIngredient(id, name, price, inventory, addOn) {
+    editingIngredientId = id;
+    document.getElementById('edit-ing-name').value      = name;
+    document.getElementById('edit-ing-price').value     = price;
+    document.getElementById('edit-ing-inventory').value = inventory;
+    document.getElementById('edit-ing-addon').checked   = addOn;
+    document.getElementById('edit-ingredient-modal-overlay').classList.add('open');
+}
+
+function closeEditIngredient() {
+    document.getElementById('edit-ingredient-modal-overlay').classList.remove('open');
+    editingIngredientId = null;
+}
+
+async function saveEditIngredient() {
+    const name      = document.getElementById('edit-ing-name').value.trim();
+    const price     = parseFloat(document.getElementById('edit-ing-price').value) || 0;
+    const inventory = parseInt(document.getElementById('edit-ing-inventory').value) || 0;
+    const addOn     = document.getElementById('edit-ing-addon').checked;
+
+    try {
+        const res = await api(`/api/ingredients/${editingIngredientId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ name, price, inventory, addOn })
+        });
+        if (!res.ok) throw new Error('Status ' + res.status);
+
+        showToast('Ingrediens opdateret ✓');
+        closeEditIngredient();
+        ingredientsLoaded = false;
+        allIngredients = [];
+        loadIngredientList();
+    } catch (e) {
+        showToast('Kunne ikke opdatere ingrediens', true);
+    }
 }
 
 // ── Opening Hours ────────────────────────────────
@@ -569,6 +610,10 @@ async function doLogout() {
 // ── Modal overlay close on backdrop click ────────
 document.getElementById('product-modal-overlay').addEventListener('click', function (e) {
     if (e.target === this) closeProductModal();
+});
+
+document.getElementById('edit-ingredient-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeEditIngredient();
 });
 
 // ── Init ─────────────────────────────────────────
