@@ -85,6 +85,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/orders/pending",
                                 "/api/orders/active",
+                                "/api/orders/statistics",
                                 "/api/orders/*/accept"
                         ).hasRole("ADMIN")
 

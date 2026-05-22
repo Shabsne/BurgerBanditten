@@ -29,6 +29,7 @@ function showScreen(id, btn) {
     document.getElementById('screen-' + id).classList.add('visible');
     if (btn) btn.classList.add('active');
     if (id === 'catalog'     && !allProducts.length)     loadCatalog();
+    if (id === 'statistics') loadSalesStatistics();
     if (id === 'ingredients' && !ingredientsLoaded)      loadIngredientList();
     if (id === 'hours') { loadWeeklySchedule(); loadHolidays(); }
 }
@@ -183,6 +184,65 @@ async function acceptOrder(orderId) {
 }
 
 // ── Catalog ──────────────────────────────────────
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('da-DK', {
+        style: 'currency',
+        currency: 'DKK'
+    }).format(amount ?? 0);
+}
+
+function renderSalesStatistics(statistics) {
+    document.getElementById('total-revenue').textContent = formatCurrency(statistics.totalRevenue);
+
+    const tableBody = document.getElementById('product-sales-body');
+    tableBody.innerHTML = '';
+
+    if (!statistics.productSales || statistics.productSales.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3">Ingen salg i perioden</td></tr>';
+        return;
+    }
+
+    statistics.productSales.forEach((product, index) => {
+        const row = document.createElement('tr');
+        const rankCell = document.createElement('td');
+        const productCell = document.createElement('td');
+        const quantityCell = document.createElement('td');
+
+        rankCell.textContent = `#${index + 1}`;
+        productCell.textContent = product.productName;
+        quantityCell.textContent = product.quantitySold;
+        quantityCell.className = 'quantity-cell';
+
+        row.append(rankCell, productCell, quantityCell);
+        tableBody.appendChild(row);
+    });
+}
+
+async function loadSalesStatistics() {
+    const from = document.getElementById('statistics-from').value;
+    const to = document.getElementById('statistics-to').value;
+    const params = new URLSearchParams();
+
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+
+    try {
+        const res = await api(`/api/orders/statistics?${params.toString()}`);
+        if (!res.ok) throw new Error('Kunne ikke hente salgsstatistik');
+        renderSalesStatistics(await res.json());
+    } catch (e) {
+        document.getElementById('product-sales-body').innerHTML =
+            '<tr><td colspan="3">Kunne ikke hente statistik - prov igen</td></tr>';
+        showToast(e.message || 'Kunne ikke hente statistik', true);
+    }
+}
+
+function clearStatisticsFilter() {
+    document.getElementById('statistics-from').value = '';
+    document.getElementById('statistics-to').value = '';
+    loadSalesStatistics();
+}
+
 let allProducts = [], allIngredients = [], activeFilter = 'ALL', editingId = null;
 
 async function loadCatalog() {

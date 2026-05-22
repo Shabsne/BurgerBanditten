@@ -173,6 +173,12 @@ public class OrderService {
             }
         }
 
-        return new SalesStatisticsDto(List.copyOf(productSales.values()), totalRevenue);
+        List<ProductSalesDto> topProducts = productSales.values().stream()
+                .filter(product -> product.quantitySold() > 0)
+                .sorted((first, second) -> Integer.compare(second.quantitySold(), first.quantitySold()))
+                .limit(5)
+                .toList();
+
+        return new SalesStatisticsDto(topProducts, totalRevenue);
     }
 }
