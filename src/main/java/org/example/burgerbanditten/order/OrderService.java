@@ -228,10 +228,15 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    // ── Fuldfør ordre ───────────────────────────────────────────────────
+    //fuldfør ordre
     public Order completeOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
+
+        if (order.getOrderStatus() != OrderStatus.ACCEPTED) {
+            throw new IllegalStateException("Kun accepterede ordrer kan fuldføres.");
+        }
+
         order.setOrderStatus(OrderStatus.COMPLETED);
         return orderRepository.save(order);
     }

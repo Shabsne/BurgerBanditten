@@ -91,7 +91,9 @@ public class SecurityConfig {
                                 "/api/orders/pending",
                                 "/api/orders/active",
                                 "/api/orders/statistics",
-                                "/api/orders/*/accept"
+                                "/api/orders/*/accept",
+                                "/api/orders/*/complete",
+                                "/api/orders/*/reject"
                         ).hasRole("ADMIN")
 
                         // ── Admin-only: produkter & åbningstider ───────
@@ -101,7 +103,7 @@ public class SecurityConfig {
                                 // Logget-ind bruger: egne ordrer
                                 .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasAnyRole("CUSTOMER", "ADMIN")
 
-                        // Admin: ordrehistorik (completed + cancelled)
+                        // Admin: ordrehistorik (completed + rejected)
                                 .requestMatchers(HttpMethod.GET, "/api/orders/history").hasRole("ADMIN")
 
                         // ── Logget-ind brugere: checkout ───────────────

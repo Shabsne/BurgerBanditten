@@ -170,7 +170,8 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
             alert(msg);
             window.location.href = '/menu.html';
         } else {
-            alert('Der skete en fejl. Prøv igen.');
+            const errorMsg = await res.text();
+            alert(errorMsg || 'Der skete en fejl. Prøv igen.');
         }
     } catch (err) {
         alert('Ingen forbindelse til serveren.');

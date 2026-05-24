@@ -1704,12 +1704,12 @@ input.ok    { border-color: var(--success); }
 .status-pill.pending   { background: rgba(245,166,35,0.1);  border: 1px solid rgba(245,166,35,0.35);  color: var(--warning); }
 .status-pill.accepted  { background: rgba(76,175,125,0.1);  border: 1px solid rgba(76,175,125,0.3);   color: var(--success); }
 .status-pill.completed { background: rgba(76,175,125,0.1);  border: 1px solid rgba(76,175,125,0.3);   color: var(--success); }
-.status-pill.cancelled { background: rgba(232,40,30,0.06);  border: 1px solid rgba(232,40,30,0.25);   color: var(--error);   }
+.status-pill.rejected { background: rgba(232,40,30,0.06);  border: 1px solid rgba(232,40,30,0.25);   color: var(--error);   }
 
 /* Historik-kort: farvet venstrekant ligesom order-card.new-order */
 .history-card      { border-left-color: var(--border); }
 .history-completed { border-left-color: var(--success); }
-.history-cancelled { border-left-color: var(--error); }
+.history-rejected { border-left-color: var(--error); }
 
 /* Tom-state for historik-listen i kunde-modal */
 .history-empty {

@@ -170,7 +170,7 @@ public class OrderController {
     }
 
     // GET historik — kun admin
-// ?status=completed | cancelled | (tom = begge)
+// ?status=completed | rejected | (tom = begge)
     @GetMapping("/history")
     public ResponseEntity<List<Order>> getOrderHistory(
             @RequestParam(required = false) String status) {

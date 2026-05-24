@@ -5,29 +5,33 @@
 // ── Kunde: Mine ordrer ────────────────────────────
 async function toggleCustomerOrders() {
     const overlay = document.getElementById('customer-orders-overlay');
-    const isOpen  = overlay.classList.contains('open');
+    const isOpen  = overlay.style.display === 'flex';
 
     if (isOpen) {
-        overlay.classList.remove('open');
+        overlay.style.display = 'none';
         return;
     }
 
-    overlay.classList.add('open');
+    // Åbn manuelt — undgår CSS-konflikt
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+
     const list = document.getElementById('customer-orders-list');
-    list.innerHTML = '<div class="history-empty"><div class="empty-icon">⏳</div><p>Henter dine ordrer…</p></div>';
+    list.innerHTML = '<div class="history-empty"><p>Henter dine ordrer…</p></div>';
 
     try {
         const res = await fetch('/api/orders/my-orders', { credentials: 'include' });
 
         if (res.status === 401) {
-            list.innerHTML = '<div class="history-empty"><p>Du skal være logget ind for at se dine ordrer.</p></div>';
+            list.innerHTML = '<div class="history-empty"><p>Du skal være logget ind.</p></div>';
             return;
         }
 
         const orders = await res.json();
 
         if (!orders.length) {
-            list.innerHTML = '<div class="history-empty"><div class="empty-icon">🍔</div><p>Du har ingen ordrer endnu.</p></div>';
+            list.innerHTML = '<div class="history-empty"><div class="empty-icon">🍔</div><p>Ingen ordrer endnu.</p></div>';
             return;
         }
 
@@ -47,14 +51,14 @@ function buildCustomerCard(order) {
         PENDING:   'status-pill pending',
         ACTIVE:    'status-pill accepted',
         COMPLETED: 'status-pill completed',
-        CANCELLED: 'status-pill cancelled',
+        REJECTED: 'status-pill rejected',
     }[order.orderStatus] ?? 'status-pill';
 
     const statusLabel = {
         PENDING:   'Ventende',
         ACTIVE:    'Under tilberedning',
         COMPLETED: 'Afhentet',
-        CANCELLED: 'Annulleret',
+        REJECTED: 'Afvist',
     }[order.orderStatus] ?? order.orderStatus;
 
     return `
@@ -113,7 +117,7 @@ function buildAdminHistoryCard(order) {
     const card = document.createElement('div');
     const isCompleted = order.orderStatus === 'COMPLETED';
 
-    card.className = `order-card ${isCompleted ? 'history-completed' : 'history-cancelled'}`;
+    card.className = `order-card ${isCompleted ? 'history-completed' : 'history-rejected'}`;
 
     const items = (order.orderItems || [])
         .map(i => `<li><span>${i.quantity}× ${i.product?.name ?? 'Vare'}</span><span>${(i.price ?? 0).toFixed(0)} kr.</span></li>`)
@@ -129,8 +133,8 @@ function buildAdminHistoryCard(order) {
                     <span>${formatHistoryDate(order.createdAt)}</span>
                 </div>
             </div>
-            <span class="status-pill ${isCompleted ? 'completed' : 'cancelled'}">
-                ${isCompleted ? '✓ Afhentet' : '✕ Annulleret'}
+            <span class="status-pill ${isCompleted ? 'completed' : 'rejected'}">
+                ${isCompleted ? '✓ Afhentet' : '✕ Afvist'}
             </span>
         </div>
         <ul class="order-items-list">${items}</ul>

@@ -43,6 +43,24 @@
     <div class="modal-box" id="update-modal-content"></div>
 </div>
 
+<!-- Mine ordrer modal (kunde) -->
+<div class="modal-overlay" id="customer-orders-overlay"
+     style="display:none; align-items:center; justify-content:center;"
+     onclick="if(event.target===this) document.getElementById('customer-orders-overlay').style.display='none'">
+    <div class="modal-box" style="max-width:500px;">
+        <div class="modal-header">
+            <div class="modal-title">Mine ordrer</div>
+            <button class="modal-close"
+                    onclick="document.getElementById('customer-orders-overlay').style.display='none'">
+                &times;
+            </button>
+        </div>
+        <div id="customer-orders-list"
+             style="max-height:400px; overflow-y:auto; margin-top:1rem; display:flex; flex-direction:column; gap:1rem;">
+        </div>
+    </div>
+</div>
+
 <!-- ══════════════════════════════════════════════
      HOVERING CART WIDGET (altid fixed bottom-right)
 ══════════════════════════════════════════════ -->
@@ -52,7 +70,6 @@
     <div id="cart-panel" class="cart-panel">
         <div class="cart-drawer-header">
             <div class="cart-drawer-title">Din <span>Kurv</span></div>
-            <!-- X kollapser til bar — fjerner ikke kurven -->
             <button class="cart-close-btn" onclick="collapseCart()" title="Minimer kurv">−</button>
         </div>
         <div id="cart-drawer-items" class="cart-drawer-items"></div>

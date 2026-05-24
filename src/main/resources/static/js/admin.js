@@ -97,14 +97,11 @@ function buildOrderCard(order, isPending) {
         : `<span class="status-pill accepted">Accepteret</span>`;
 
     const footer = isPending
-        ? `<div style="display:flex; gap:0.5rem;">
-               <button class="btn-accept" id="btn-${order.id}" onclick="acceptOrder(${order.id})">✓ Accepter</button>
-               <button class="btn-sm btn-danger" id="btn-reject-${order.id}" onclick="rejectOrder(${order.id})">✕ Afvis</button>
-           </div>`
+        ? `<button class="btn-accept" id="btn-${order.id}" onclick="acceptOrder(${order.id})">✓ Accepter</button>`
         : `<div style="display:flex; gap:0.5rem; align-items:center;">
-               <span class="accepted-pill">✓ Accepteret</span>
-               <button class="btn-sm" onclick="openEditOrderModal(${order.id})">✏️ Rediger</button>
-           </div>`;
+           <button class="btn-sm btn-success" onclick="completeOrder(${order.id})">✓ Fuldfør</button>
+           <button class="btn-sm" onclick="openEditOrderModal(${order.id})">✏️ Rediger</button>
+       </div>`;
 
     card.innerHTML = `
         <div class="card-header">
@@ -144,6 +141,26 @@ function renderOrderGrid(orders, gridId, isPending) {
         c.style.animationDelay = i * 0.04 + 's';
         grid.appendChild(c);
     });
+}
+
+async function completeOrder(orderId) {
+    if (!confirm(`Marker ordre #${orderId} som fuldført?`)) return;
+    try {
+        const res = await fetch(`/api/orders/${orderId}/complete`, {
+            method: 'PUT',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            // Fjern kortet fra aktive og genindlæs historik hvis den er åben
+            document.getElementById('order-' + orderId)?.remove();
+            showToast(`Ordre #${orderId} fuldført ✓`);
+        } else {
+            const msg = await res.text();
+            alert('Fejl: ' + msg);
+        }
+    } catch (e) {
+        alert('Netværksfejl');
+    }
 }
 
 async function loadPendingOrders() {
