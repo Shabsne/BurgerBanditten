@@ -5,6 +5,7 @@ import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
 import org.example.burgerbanditten.user.User;
+import org.example.burgerbanditten.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +25,7 @@ class OrderServiceTests {
     private ProductRepository productRepository;
     private EmailService emailService;
     private PreOrderService preOrderService;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
@@ -31,7 +33,8 @@ class OrderServiceTests {
         productRepository = mock(ProductRepository.class);
         emailService     = mock(EmailService.class);
         preOrderService = mock(PreOrderService.class);
-        orderService = new OrderService(orderRepository, emailService, preOrderService, productRepository);
+        orderService = new OrderService(orderRepository, emailService, preOrderService,
+                productRepository, userRepository);
     }
 
     // ── Ikke-eksisterende ordre ──────────────────────────

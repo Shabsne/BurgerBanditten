@@ -106,23 +106,42 @@ function showProductModal(product, allIngredients = []) {
                       placeholder="Fx. ingen løg, ekstra dressing…" rows="2"></textarea>
         </div>
 
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="closeModal()">Tilbage</button>
-            <button class="btn-primary"
-                    onclick="addToCartFromModal(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price})">
-                + Tilføj
-            </button>
+        <div class="modal-footer" style="flex-direction:column; gap:0.75rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem; justify-content:center;">
+                <button class="btn-secondary" style="width:36px;height:36px;padding:0;font-size:1.2rem;"
+                        onclick="changeModalQty(-1)">−</button>
+                <span id="modal-qty" style="min-width:28px; text-align:center; font-size:1.1rem; font-weight:600;">1</span>
+                <button class="btn-secondary" style="width:36px;height:36px;padding:0;font-size:1.2rem;"
+                        onclick="changeModalQty(1)">+</button>
+            </div>
+            <div style="display:flex; gap:0.5rem; width:100%;">
+                <button class="btn-secondary" style="flex:1;" onclick="closeModal()">Tilbage</button>
+                <button class="btn-primary" style="flex:2;"
+                        onclick="addToCartFromModal(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price})">
+                    + Tilføj
+                </button>
+            </div>
         </div>
     `;
     modal.classList.add('open');
 }
 
 function addToCartFromModal(id, name, price) {
+    const qty = parseInt(document.getElementById('modal-qty')?.textContent) || 1;
     const selectedIngredients = [...document.querySelectorAll('input[name="extra-ing"]:checked')]
         .map(cb => ({ id: parseInt(cb.value), name: cb.dataset.name }));
     const comment = (document.getElementById('product-comment')?.value || '').trim();
-    addToCart(id, name, price, selectedIngredients, comment);
+    for (let i = 0; i < qty; i++) {
+        addToCart(id, name, price, selectedIngredients, comment);
+    }
     closeModal();
+}
+
+function changeModalQty(delta) {
+    const el = document.getElementById('modal-qty');
+    if (!el) return;
+    const current = parseInt(el.textContent) || 1;
+    el.textContent = Math.max(1, current + delta);
 }
 
 function closeModal() {
@@ -245,6 +264,7 @@ async function checkAdmin() {
         if (loggedIn) {
             document.getElementById('login-btn').classList.add('hidden');
             document.getElementById('logout-btn').classList.remove('hidden');
+            document.getElementById('history-btn').classList.remove('hidden'); // ← tilføj denne
         }
     } catch (e) { /* ignore */ }
 }

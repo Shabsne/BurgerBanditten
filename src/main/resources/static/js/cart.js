@@ -150,11 +150,21 @@ async function checkout() {
 
 async function sendUserOrder() {
     try {
+        const orderRequest = {
+            comment: '',   // kan udvides med en kommentar-boks senere
+            pickUpTime: null,
+            items: cart.map(item => ({
+                productId:            item.productId,
+                quantity:             item.quantity,
+                selectedIngredients:  (item.selectedIngredients || []).map(i => i.id)
+            }))
+        };
+
         const response = await fetch('/api/orders/checkout', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(cart)
+            body: JSON.stringify(orderRequest)
         });
 
         if (response.ok) {
@@ -164,7 +174,8 @@ async function sendUserOrder() {
             renderCart();
             collapseCart();
         } else {
-            alert('Der skete en fejl under bestillingen.');
+            const msg = await response.text();
+            alert('Fejl: ' + msg);
         }
     } catch (error) {
         console.error('Fejl:', error);

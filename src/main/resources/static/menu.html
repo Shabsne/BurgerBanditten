@@ -14,6 +14,7 @@
 <header class="topbar">
     <div class="topbar-logo">Burger<span>Banditten</span></div>
     <div class="topbar-actions">
+        <button id="history-btn" class="btn-sm hidden" onclick="toggleCustomerOrders()">Mine ordrer</button>
         <a id="admin-link" href="/admin.html" class="btn-sm hidden">⚙ Admin</a>
         <button id="logout-btn" class="btn-sm hidden" onclick="doLogout()">Log ud</button>
         <a id="login-btn" href="/login.html" class="btn-sm">Log ind</a>
@@ -75,6 +76,7 @@
 <div id="cart-toast" class="cart-toast">Tilføjet til kurven! 🍔</div>
 
 <script src="/js/cart.js"></script>
+<script src="/js/orderHistory.js"></script>
 <script src="/js/menu.js"></script>
 </body>
 </html>

@@ -78,6 +78,8 @@ function switchOrderTab(tab) {
     document.querySelectorAll('.order-panel').forEach(p => p.classList.remove('visible'));
     document.getElementById('subtab-' + tab).classList.add('active');
     document.getElementById('panel-' + tab).classList.add('visible');
+
+    if (tab === 'history') loadAdminHistory('all');
 }
 
 // ── Build order card ─────────────────────────────
@@ -95,7 +97,10 @@ function buildOrderCard(order, isPending) {
         : `<span class="status-pill accepted">Accepteret</span>`;
 
     const footer = isPending
-        ? `<button class="btn-accept" id="btn-${order.id}" onclick="acceptOrder(${order.id})">✓ Accepter</button>`
+        ? `<div style="display:flex; gap:0.5rem;">
+               <button class="btn-accept" id="btn-${order.id}" onclick="acceptOrder(${order.id})">✓ Accepter</button>
+               <button class="btn-sm btn-danger" id="btn-reject-${order.id}" onclick="rejectOrder(${order.id})">✕ Afvis</button>
+           </div>`
         : `<div style="display:flex; gap:0.5rem; align-items:center;">
                <span class="accepted-pill">✓ Accepteret</span>
                <button class="btn-sm" onclick="openEditOrderModal(${order.id})">✏️ Rediger</button>
@@ -183,6 +188,29 @@ async function acceptOrder(orderId) {
     } catch (e) {
         showToast(e.message || 'Fejl ved accept', true);
         if (btn) { btn.classList.remove('loading'); btn.textContent = '✓ Accepter'; }
+    }
+}
+
+async function rejectOrder(orderId) {
+    if (!confirm(`Afvis ordre #${orderId}?`)) return;
+    const btn = document.getElementById('btn-reject-' + orderId);
+    if (btn) { btn.classList.add('loading'); btn.textContent = '...'; }
+    try {
+        const res = await api(`/api/orders/${orderId}/reject`, { method: 'PUT' });
+        if (!res.ok) throw new Error(await res.text());
+
+        const pendingBadge = document.getElementById('pending-count');
+        pendingBadge.textContent = Math.max(0, parseInt(pendingBadge.textContent) - 1);
+
+        const card = document.getElementById('order-' + orderId);
+        card.style.transition = 'opacity 0.3s, transform 0.3s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.96)';
+        setTimeout(() => card.remove(), 300);
+        showToast(`✕ Ordre #${orderId} afvist`);
+    } catch (e) {
+        showToast(e.message || 'Fejl ved afvisning', true);
+        if (btn) { btn.classList.remove('loading'); btn.textContent = '✕ Afvis'; }
     }
 }
 
@@ -650,6 +678,12 @@ async function doLogout() {
         sessionStorage.clear();
         window.location.href = '/login.html';
     }
+}
+
+function setHistoryFilter(filter) {
+    document.querySelectorAll('.history-filter-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('hf-' + filter).classList.add('active');
+    loadAdminHistory(filter);
 }
 
 // ── Modal overlays close on backdrop click ───────

@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 @Configuration
 @EnableWebSecurity
@@ -96,6 +98,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/admin/opening-hours/**").hasRole("ADMIN")
+                                // Logget-ind bruger: egne ordrer
+                                .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // Admin: ordrehistorik (completed + cancelled)
+                                .requestMatchers(HttpMethod.GET, "/api/orders/history").hasRole("ADMIN")
 
                         // ── Logget-ind brugere: checkout ───────────────
                         .requestMatchers("/api/orders/checkout").hasAnyRole("CUSTOMER", "ADMIN")
