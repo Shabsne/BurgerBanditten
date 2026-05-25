@@ -1,6 +1,9 @@
 package org.example.burgerbanditten.product;
 
 import org.example.burgerbanditten.ingredient.Ingredient;
+import org.example.burgerbanditten.product.dto.ProductCardDTO;
+import org.example.burgerbanditten.product.dto.ProductDetailsDTO;
+import org.example.burgerbanditten.product.dto.UpdateProductDTO;
 import org.springframework.stereotype.Component;
 
 @Component
