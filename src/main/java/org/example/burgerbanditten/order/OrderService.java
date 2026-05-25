@@ -306,5 +306,5 @@ public class OrderService {
         };
         // Genbrug den eksisterende findSalesOrders — ingen datofilter her
         return orderRepository.findSalesOrders(statuses, null, null);
-    }
+    } //huh
 }
