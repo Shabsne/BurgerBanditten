@@ -45,13 +45,12 @@
 
 <!-- Mine ordrer modal (kunde) -->
 <div class="modal-overlay" id="customer-orders-overlay"
-     style="display:none; align-items:center; justify-content:center;"
-     onclick="if(event.target===this) document.getElementById('customer-orders-overlay').style.display='none'">
+     onclick="if(event.target===this) document.getElementById('customer-orders-overlay').classList.remove('open')">
     <div class="modal-box" style="max-width:500px;">
         <div class="modal-header">
             <div class="modal-title">Mine ordrer</div>
             <button class="modal-close"
-                    onclick="document.getElementById('customer-orders-overlay').style.display='none'">
+                    onclick="document.getElementById('customer-orders-overlay').classList.remove('open')">
                 &times;
             </button>
         </div>

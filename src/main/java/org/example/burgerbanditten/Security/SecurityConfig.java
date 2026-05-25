@@ -82,6 +82,11 @@ public class SecurityConfig {
 
                         // ── Admin-only: bestillings-switch ─────────────
                         .requestMatchers("/api/orders/admin/**").hasRole("ADMIN")
+                        // ── Kunde: egne ordrer — SKAL være før wildcard-reglen nedenfor ──
+                        .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // ── Admin: historik ────────────────────────────────────────────
+                        .requestMatchers(HttpMethod.GET, "/api/orders/history").hasRole("ADMIN")
 
                         // ───────────── Hent en specifik ordre ─────────────
                         .requestMatchers(HttpMethod.GET, "/api/orders/*").hasRole("ADMIN")

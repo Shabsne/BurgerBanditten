@@ -5,17 +5,14 @@
 // ── Kunde: Mine ordrer ────────────────────────────
 async function toggleCustomerOrders() {
     const overlay = document.getElementById('customer-orders-overlay');
-    const isOpen  = overlay.style.display === 'flex';
+    const isOpen  = overlay.classList.contains('open');
 
     if (isOpen) {
-        overlay.style.display = 'none';
+        overlay.classList.remove('open');
         return;
     }
 
-    // Åbn manuelt — undgår CSS-konflikt
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
+    overlay.classList.add('open');
 
     const list = document.getElementById('customer-orders-list');
     list.innerHTML = '<div class="history-empty"><p>Henter dine ordrer…</p></div>';
@@ -23,7 +20,7 @@ async function toggleCustomerOrders() {
     try {
         const res = await fetch('/api/orders/my-orders', { credentials: 'include' });
 
-        if (res.status === 401) {
+        if (res.status === 401 || res.status === 403) {
             list.innerHTML = '<div class="history-empty"><p>Du skal være logget ind.</p></div>';
             return;
         }

@@ -151,8 +151,16 @@ async function completeOrder(orderId) {
             credentials: 'include'
         });
         if (res.ok) {
-            // Fjern kortet fra aktive og genindlæs historik hvis den er åben
+            // Fjern kortet fra aktive
             document.getElementById('order-' + orderId)?.remove();
+
+            // Opdater badge-tæller
+            const badge = document.getElementById('active-count');
+            if (badge) {
+                const current = parseInt(badge.textContent) || 0;
+                badge.textContent = Math.max(0, current - 1);
+            }
+
             showToast(`Ordre #${orderId} fuldført ✓`);
         } else {
             const msg = await res.text();
