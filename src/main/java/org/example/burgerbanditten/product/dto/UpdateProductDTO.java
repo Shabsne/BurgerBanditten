@@ -1,4 +1,6 @@
-package org.example.burgerbanditten.product;
+package org.example.burgerbanditten.product.dto;
+
+import org.example.burgerbanditten.product.Category;
 
 import java.util.List;
 

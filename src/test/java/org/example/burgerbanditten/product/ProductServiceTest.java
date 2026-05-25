@@ -2,6 +2,10 @@ package org.example.burgerbanditten.product;
 
 import org.example.burgerbanditten.ingredient.Ingredient;
 import org.example.burgerbanditten.ingredient.IngredientRepository;
+import org.example.burgerbanditten.product.dto.CreateProductDTO;
+import org.example.burgerbanditten.product.dto.ProductCardDTO;
+import org.example.burgerbanditten.product.dto.ProductDetailsDTO;
+import org.example.burgerbanditten.product.dto.UpdateProductDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

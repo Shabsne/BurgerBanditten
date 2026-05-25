@@ -31,6 +31,7 @@ function showScreen(id, btn) {
     if (id === 'catalog'     && !allProducts.length)     loadCatalog();
     if (id === 'statistics') loadSalesStatistics();
     if (id === 'ingredients' && !ingredientsLoaded)      loadIngredientList();
+    if (id === 'statistics')                             loadSalesStatistics();
     if (id === 'hours') { loadWeeklySchedule(); loadHolidays(); }
 }
 
@@ -730,6 +731,65 @@ async function deleteHoliday(id) {
 }
 
 // ── Logout ───────────────────────────────────────
+// Statistics
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('da-DK', {
+        style: 'currency',
+        currency: 'DKK'
+    }).format(amount ?? 0);
+}
+
+function renderSalesStatistics(statistics) {
+    document.getElementById('total-revenue').textContent = formatCurrency(statistics.totalRevenue);
+
+    const tableBody = document.getElementById('product-sales-body');
+    tableBody.innerHTML = '';
+
+    if (!statistics.productSales || statistics.productSales.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="2">Ingen produkter fundet</td></tr>';
+        return;
+    }
+
+    statistics.productSales.forEach(product => {
+        const row = document.createElement('tr');
+        const productCell = document.createElement('td');
+        const quantityCell = document.createElement('td');
+
+        productCell.textContent = product.productName;
+        quantityCell.textContent = product.quantitySold;
+        quantityCell.className = 'quantity-cell';
+
+        row.append(productCell, quantityCell);
+        tableBody.appendChild(row);
+    });
+}
+
+async function loadSalesStatistics() {
+    const from = document.getElementById('statistics-from')?.value;
+    const to = document.getElementById('statistics-to')?.value;
+    const params = new URLSearchParams();
+
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+
+    try {
+        const response = await api(`/api/orders/statistics?${params.toString()}`);
+        if (!response.ok) throw new Error('Kunne ikke hente salgsstatistik');
+        renderSalesStatistics(await response.json());
+    } catch (error) {
+        console.error(error);
+        document.getElementById('product-sales-body').innerHTML =
+            '<tr><td colspan="2">Kunne ikke hente statistik - prøv igen</td></tr>';
+        showToast('Kunne ikke hente statistik', true);
+    }
+}
+
+function clearStatisticsFilter() {
+    document.getElementById('statistics-from').value = '';
+    document.getElementById('statistics-to').value = '';
+    loadSalesStatistics();
+}
+
 async function doLogout() {
     try { await api('/api/users/logout', { method: 'POST' }); } finally {
         sessionStorage.clear();

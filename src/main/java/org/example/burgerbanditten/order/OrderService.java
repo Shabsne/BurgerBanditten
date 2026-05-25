@@ -1,6 +1,8 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
+import org.example.burgerbanditten.ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.IngredientRepository;
 import org.example.burgerbanditten.order.dto.*;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
@@ -11,29 +13,31 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
     private final EmailService emailService;
     private final PreOrderService preOrderService;
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+    private final IngredientRepository ingredientRepository;
 
     public OrderService(OrderRepository orderRepository,
+                        UserRepository userRepository,
                         EmailService emailService,
                         PreOrderService preOrderService,
-                        ProductRepository productRepository, UserRepository userRepository) {
+                        ProductRepository productRepository,
+                        IngredientRepository ingredientRepository) {
         this.orderRepository = orderRepository;
+        this.userRepository = userRepository;
         this.emailService    = emailService;
         this.preOrderService = preOrderService;
         this.productRepository = productRepository;
-        this.userRepository = userRepository;
+        this.ingredientRepository = ingredientRepository;
     }
 
     // ── Gæstebestilling ──────────────────────────────────────────────────────
@@ -232,7 +236,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    //fuldfør ordre
+    // ── Fuldfør ordre ───────────────────────────────────────────────────
     public Order completeOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
@@ -248,46 +252,29 @@ public class OrderService {
 
     // ── Salgsstatistik ─────────────────────────────────────────────────
     public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {
-        LocalDateTime fromDateTime = from == null ? null : from.atStartOfDay();
-        LocalDateTime toDateTime = to == null ? null : to.plusDays(1).atStartOfDay();
-
         List<Order> orders = orderRepository.findSalesOrders(
                 List.of(OrderStatus.ACCEPTED, OrderStatus.COMPLETED),
-                fromDateTime,
-                toDateTime
+                LocalDateTime.of(from.getYear(), from.getMonth(), from.getDayOfMonth(), 0, 0),
+                LocalDateTime.of(to.getYear(), to.getMonth(), to.getDayOfMonth() + 1, 0, 0)
         );
 
-        Map<Long, ProductSalesDto> productSales = new LinkedHashMap<>();
-        for (Product product : productRepository.findAll()) {
-            productSales.put(product.getId(), new ProductSalesDto(product.getId(), product.getName(), 0));
-        }
+        double totalRevenue = orders.stream()
+                .mapToDouble(Order::getPrice)
+                .sum();
 
-        double totalRevenue = 0;
-        for (Order order : orders) {
-            totalRevenue += order.getPrice();
+        var productSales = orders.stream()
+                .flatMap(order -> order.getOrderItems().stream())
+                .collect(Collectors.groupingBy(
+                        item -> item.getProduct().getName(),
+                        Collectors.summingInt(OrderItem::getQuantity)
+                ))
+                .entrySet().stream()
+                .map(entry -> new ProductSalesDto(null, entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparingInt(ProductSalesDto::quantitySold).reversed())
+                .limit(5)
+                .toList();
 
-            if (order.getOrderItems() == null) {
-                continue;
-            }
-
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = item.getProduct();
-                if (product == null) {
-                    continue;
-                }
-
-                ProductSalesDto current = productSales.getOrDefault(
-                        product.getId(),
-                        new ProductSalesDto(product.getId(), product.getName(), 0)
-                );
-                productSales.put(
-                        product.getId(),
-                        new ProductSalesDto(product.getId(), current.productName(), current.quantitySold() + item.getQuantity())
-                );
-            }
-        }
-
-        return new SalesStatisticsDto(List.copyOf(productSales.values()), totalRevenue);
+        return new SalesStatisticsDto(productSales, totalRevenue);
     }
 
     // Hent ordrer for den indloggede bruger
