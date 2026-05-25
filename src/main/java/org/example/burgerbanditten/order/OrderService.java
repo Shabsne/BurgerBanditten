@@ -250,6 +250,9 @@ public class OrderService {
 
     // ── Salgsstatistik ─────────────────────────────────────────────────
     public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {
+        LocalDateTime fromDateTime = from == null ? null : from.atStartOfDay();
+        LocalDateTime toDateTime = to == null ? null : to.plusDays(1).atStartOfDay();
+
         List<Order> orders = orderRepository.findSalesOrders(
                 List.of(OrderStatus.ACCEPTED, OrderStatus.COMPLETED),
                 LocalDateTime.of(from.getYear(), from.getMonth(), from.getDayOfMonth(), 0, 0),
