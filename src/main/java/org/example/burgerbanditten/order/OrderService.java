@@ -9,6 +9,8 @@ import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.example.burgerbanditten.ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.IngredientRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,15 +26,17 @@ public class OrderService {
     private final EmailService emailService;
     private final PreOrderService preOrderService;
     private final ProductRepository productRepository;
+    private final IngredientRepository ingredientRepository;  // Add this field
 
     public OrderService(OrderRepository orderRepository,
                         EmailService emailService,
                         PreOrderService preOrderService,
-                        ProductRepository productRepository) {
+                        ProductRepository productRepository, IngredientRepository ingredientRepository) {
         this.orderRepository = orderRepository;
         this.emailService    = emailService;
         this.preOrderService = preOrderService;
         this.productRepository = productRepository;
+        this.ingredientRepository = ingredientRepository;
     }
 
     // ── Gæsteordre ─────────────────────────────────────────────────────
