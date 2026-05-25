@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 @Configuration
 @EnableWebSecurity
@@ -80,6 +82,11 @@ public class SecurityConfig {
 
                         // ── Admin-only: bestillings-switch ─────────────
                         .requestMatchers("/api/orders/admin/**").hasRole("ADMIN")
+                        // ── Kunde: egne ordrer — SKAL være før wildcard-reglen nedenfor ──
+                        .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // ── Admin: historik ────────────────────────────────────────────
+                        .requestMatchers(HttpMethod.GET, "/api/orders/history").hasRole("ADMIN")
 
                         // ───────────── Hent en specifik ordre ─────────────
                         .requestMatchers(HttpMethod.GET, "/api/orders/*").hasRole("ADMIN")
@@ -89,13 +96,20 @@ public class SecurityConfig {
                                 "/api/orders/pending",
                                 "/api/orders/active",
                                 "/api/orders/statistics",
-                                "/api/orders/*/accept"
+                                "/api/orders/*/accept",
+                                "/api/orders/*/complete",
+                                "/api/orders/*/reject"
                         ).hasRole("ADMIN")
 
                         // ── Admin-only: produkter & åbningstider ───────
                         .requestMatchers("/api/products/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/admin/opening-hours/**").hasRole("ADMIN")
+                                // Logget-ind bruger: egne ordrer
+                                .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // Admin: ordrehistorik (completed + rejected)
+                                .requestMatchers(HttpMethod.GET, "/api/orders/history").hasRole("ADMIN")
 
                         // ── Logget-ind brugere: checkout ───────────────
                         .requestMatchers("/api/orders/checkout").hasAnyRole("CUSTOMER", "ADMIN")

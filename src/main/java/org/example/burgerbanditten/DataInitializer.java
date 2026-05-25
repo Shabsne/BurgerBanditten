@@ -44,10 +44,16 @@ public final class DataInitializer implements CommandLineRunner {
                     passwordEncoder.encode("customer123"), Role.CUSTOMER));
         }
 
+        // ── Migration: sæt addOn=true på eksisterende ingredienser ────
+        ingredientRepository.findAll().stream()
+                .filter(ing -> !ing.isAddOn())
+                .forEach(ing -> {
+                    ing.setAddOn(true);
+                    ingredientRepository.save(ing);
+                });
+
         // ── Produkter & ingredienser ───────────────────────────
         // Opret kun produkter hvis der ingen er.
-        // FIX: den gamle check var på userRepository, så produkter
-        // aldrig blev genskabt efter første kørsel.
         if (productRepository.count() > 0) return;
 
         // Ingredienser

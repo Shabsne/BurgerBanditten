@@ -1,11 +1,11 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
-import org.example.burgerbanditten.ingredient.IngredientRepository;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
 import org.example.burgerbanditten.user.User;
+import org.example.burgerbanditten.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,18 +23,18 @@ class OrderServiceTests {
     private OrderService orderService;
     private OrderRepository orderRepository;
     private ProductRepository productRepository;
-    private IngredientRepository ingredientRepository;
     private EmailService emailService;
     private PreOrderService preOrderService;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
         orderRepository = mock(OrderRepository.class);
         productRepository = mock(ProductRepository.class);
-        ingredientRepository = mock(IngredientRepository.class);
         emailService     = mock(EmailService.class);
         preOrderService = mock(PreOrderService.class);
-        orderService = new OrderService(orderRepository, emailService, preOrderService, productRepository, ingredientRepository);
+        orderService = new OrderService(orderRepository, emailService, preOrderService,
+                productRepository, userRepository);
     }
 
     // ── Ikke-eksisterende ordre ──────────────────────────

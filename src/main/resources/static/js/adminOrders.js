@@ -65,16 +65,21 @@ function buildOrderCard(order, isPending) {
     const statusClass = isPending ? 'pending' : 'accepted';
     const statusLabel = isPending ? 'Ventende' : 'Accepteret';
 
+    const pickUpTimeIso = order.pickUpTime ?? '';
+
     const footer = isPending
         ? `<button class="btn-accept" id="btn-${order.id}" onclick="acceptOrder(${order.id})">
                <div class="spinner"></div>
                <span class="btn-label">Accepter</span>
            </button>`
-        : `<div class="accepted-badge">
-               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                   <path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-               </svg>
-               Accepteret
+        : `<div style="display:flex;align-items:center;gap:8px;">
+               <div class="accepted-badge">
+                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                       <path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                   </svg>
+                   Accepteret
+               </div>
+               <button class="btn-secondary" onclick="openEditModal(${order.id}, '${pickUpTimeIso}')">Rediger</button>
            </div>`;
 
     card.innerHTML = `
@@ -298,6 +303,55 @@ function clearStatisticsFilter() {
     document.getElementById('statistics-from').value = '';
     document.getElementById('statistics-to').value = '';
     loadSalesStatistics();
+}
+
+// ── Rediger afhentingstidspunkt ───────────────────────────────────────────────
+
+let _editOrderId = null;
+
+function openEditModal(orderId, currentPickUpTime) {
+    _editOrderId = orderId;
+    const input = document.getElementById('edit-pickup-input');
+    // datetime-local input expects "YYYY-MM-DDTHH:MM"
+    input.value = currentPickUpTime ? currentPickUpTime.substring(0, 16) : '';
+    document.getElementById('edit-order-modal').classList.add('open');
+}
+
+function closeEditModal(event) {
+    if (event && event.target !== document.getElementById('edit-order-modal')) return;
+    document.getElementById('edit-order-modal').classList.remove('open');
+    _editOrderId = null;
+}
+
+async function savePickUpTime() {
+    const input = document.getElementById('edit-pickup-input');
+    if (!input.value) {
+        showToast('Vælg et afhentingstidspunkt', true);
+        return;
+    }
+
+    // Backend expects full ISO string e.g. "2024-01-15T14:30:00"
+    const pickUpTime = input.value.length === 16 ? input.value + ':00' : input.value;
+
+    try {
+        const response = await fetch(`/api/orders/${_editOrderId}/update`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pickUpTime })
+        });
+
+        if (!response.ok) {
+            const msg = await response.text();
+            throw new Error(msg || 'Noget gik galt');
+        }
+
+        document.getElementById('edit-order-modal').classList.remove('open');
+        _editOrderId = null;
+        showToast('Afhentingstidspunkt opdateret');
+        loadActiveOrders();
+    } catch (error) {
+        showToast(error.message, true);
+    }
 }
 
 loadPendingOrders();

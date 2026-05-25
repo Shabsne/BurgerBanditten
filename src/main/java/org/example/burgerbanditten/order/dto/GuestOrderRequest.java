@@ -6,21 +6,6 @@ public record GuestOrderRequest(
         String customerName,
         String phone,
         String comment,
-        List<GuestOrderItem> items
-) {
-    // Nested record — matcher kurv-objektet fra localStorage
-    public record GuestOrderItem(
-            Long productId,
-            String name,
-            double price,
-            int quantity,
-            List<SelectedIngredient> selectedIngredients
-    ) {}
-
-    public record SelectedIngredient(
-            Long id,
-            String name,
-            double price,
-            boolean defaultIngredient
-    ) {}
-}
+        String pickupDateTime,
+        List<OrderItemRequest> items  // ← bruger nu den fælles DTO
+) {}
