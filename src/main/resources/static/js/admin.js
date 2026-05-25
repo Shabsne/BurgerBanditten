@@ -37,9 +37,8 @@ function showScreen(id, btn) {
 // ── Opening status ───────────────────────────────
 async function checkOpeningStatus() {
     try {
-        const data = await api('/opening-hours/next').then(r => r.json());
-        document.getElementById('status-dot').className = 'status-dot ' + (data.openNow ? 'open' : 'closed');
-        document.getElementById('status-text').textContent = data.openNow ? 'Åben' : 'Lukket';
+        await api('/opening-hours/next').then(r => r.json());
+        // Status-dot styres udelukkende af bestillings-switchen via updateToggleBtn()
     } catch (e) {}
 }
 
@@ -70,6 +69,11 @@ function updateToggleBtn(isOpen) {
     btn.style.background = isOpen ? 'var(--success, #4CAF7D)' : 'var(--error, #FF5C5C)';
     btn.style.color      = 'white';
     btn.style.border     = 'none';
+
+    const dot  = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    if (dot)  dot.className    = 'status-dot ' + (isOpen ? 'open' : 'closed');
+    if (text) text.textContent = isOpen ? 'Åben' : 'Lukket';
 }
 
 // ── Order tabs ───────────────────────────────────

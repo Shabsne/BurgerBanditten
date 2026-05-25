@@ -157,7 +157,11 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
             body: JSON.stringify({
                 customerName:  nameInput.value.trim(),
                 phone:         phoneInput.value.trim(),
-                items:         cart,
+                items:         cart.map(item => ({
+                    productId:           item.productId,
+                    quantity:            item.quantity,
+                    selectedIngredients: (item.selectedIngredients || []).map(i => i.id)
+                })),
                 pickupDateTime // null hvis "Hurtigst mulig", ISO-streng hvis forudbestilling
             })
         });

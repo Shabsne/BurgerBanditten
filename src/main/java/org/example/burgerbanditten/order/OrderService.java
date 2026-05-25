@@ -50,6 +50,10 @@ public class OrderService {
         }
         order.setComment(note);
 
+        if (request.pickupDateTime() != null && !request.pickupDateTime().isBlank()) {
+            order.setPickUpTime(LocalDateTime.parse(request.pickupDateTime()));
+        }
+
         Order savedOrder = orderRepository.save(order);
 
         List<OrderItem> orderItems = buildOrderItems(savedOrder, request.items()); // ← bruger hjælpemetode

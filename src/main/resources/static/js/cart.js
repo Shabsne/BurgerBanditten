@@ -167,6 +167,12 @@ async function sendUserOrder() {
             body: JSON.stringify(orderRequest)
         });
 
+        if (response.status === 401 || response.status === 403) {
+            sessionStorage.removeItem('loggedIn');
+            window.location.href = '/checkout.html';
+            return;
+        }
+
         if (response.ok) {
             alert('Ordre modtaget! Velbekomme.');
             localStorage.removeItem('burgerCart');

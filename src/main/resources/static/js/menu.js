@@ -310,5 +310,21 @@ document.getElementById('update-modal').addEventListener('click', function(e) {
     if (e.target === this) closeUpdateModal();
 });
 
+async function checkOrderingStatus() {
+    try {
+        const res = await fetch('/api/orders/status', { credentials: 'include' });
+        const { open } = await res.json();
+        const statusEl = document.getElementById('menu-ordering-status');
+        const dotEl    = document.getElementById('menu-status-dot');
+        const textEl   = document.getElementById('menu-status-text');
+        if (statusEl) {
+            statusEl.style.display = '';
+            dotEl.className        = 'status-dot ' + (open ? 'open' : 'closed');
+            textEl.textContent     = open ? 'Åben' : 'Lukket';
+        }
+    } catch (e) {}
+}
+
 fetchProducts();
 checkAdmin();
+checkOrderingStatus();
