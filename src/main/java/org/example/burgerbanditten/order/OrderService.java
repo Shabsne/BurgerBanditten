@@ -1,6 +1,8 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
+import org.example.burgerbanditten.ingredient.Ingredient;
+import org.example.burgerbanditten.ingredient.IngredientRepository;
 import org.example.burgerbanditten.order.dto.*;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
@@ -18,20 +20,24 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
     private final EmailService emailService;
     private final PreOrderService preOrderService;
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+    private final IngredientRepository ingredientRepository;
 
     public OrderService(OrderRepository orderRepository,
+                        UserRepository userRepository,
                         EmailService emailService,
                         PreOrderService preOrderService,
-                        ProductRepository productRepository, UserRepository userRepository) {
+                        ProductRepository productRepository,
+                        IngredientRepository ingredientRepository) {
         this.orderRepository = orderRepository;
+        this.userRepository = userRepository;
         this.emailService    = emailService;
         this.preOrderService = preOrderService;
         this.productRepository = productRepository;
-        this.userRepository = userRepository;
+        this.ingredientRepository = ingredientRepository;
     }
 
     // ── Gæstebestilling ──────────────────────────────────────────────────────
@@ -102,42 +108,6 @@ public class OrderService {
             result.add(orderItem);
         }
         return result;
-    }
-
-    private List<Ingredient> getSelectedIngredients(Product product, GuestOrderRequest.GuestOrderItem item) {
-        if (item.selectedIngredients() == null) {
-            return product.getIngredients() == null ? List.of() : product.getIngredients();
-        }
-        if (item.selectedIngredients().isEmpty()) {
-            return List.of();
-        }
-
-        List<Long> selectedIngredientIds = item.selectedIngredients().stream()
-                .map(GuestOrderRequest.SelectedIngredient::id)
-                .toList();
-
-        return ingredientRepository.findAllById(selectedIngredientIds);
-    }
-
-    private double calculateCustomizedItemPrice(Product product, List<Ingredient> selectedIngredients, int quantity) {
-        List<Ingredient> defaultIngredients = product.getIngredients() == null
-                ? List.of()
-                : product.getIngredients();
-
-        double addedTotal = selectedIngredients.stream()
-                .filter(ingredient -> defaultIngredients.stream()
-                        .noneMatch(defaultIngredient -> defaultIngredient.getId().equals(ingredient.getId())))
-                .mapToDouble(Ingredient::getPrice)
-                .sum();
-
-        double removedTotal = defaultIngredients.stream()
-                .filter(defaultIngredient -> selectedIngredients.stream()
-                        .noneMatch(ingredient -> ingredient.getId().equals(defaultIngredient.getId())))
-                .mapToDouble(Ingredient::getPrice)
-                .sum();
-
-        double unitPrice = Math.max(0, product.getPrice() + addedTotal - removedTotal);
-        return unitPrice * quantity;
     }
 
     // ── Accept ordre ────────────────────────────────────────────────────
@@ -266,7 +236,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    //fuldfør ordre
+    // ── Fuldfør ordre ───────────────────────────────────────────────────
     public Order completeOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));

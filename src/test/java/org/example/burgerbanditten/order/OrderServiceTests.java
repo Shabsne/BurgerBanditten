@@ -24,20 +24,21 @@ class OrderServiceTests {
     private OrderService orderService;
     private OrderRepository orderRepository;
     private ProductRepository productRepository;
-    private IngredientRepository ingredientRepository;
     private EmailService emailService;
     private PreOrderService preOrderService;
+    private IngredientRepository ingredientRepository;
     private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
         orderRepository = mock(OrderRepository.class);
+        userRepository = mock(UserRepository.class);
         productRepository = mock(ProductRepository.class);
-        ingredientRepository = mock(IngredientRepository.class);
         emailService     = mock(EmailService.class);
         preOrderService = mock(PreOrderService.class);
-        orderService = new OrderService(orderRepository, emailService, preOrderService,
-                productRepository, userRepository);
+        ingredientRepository = mock(IngredientRepository.class);
+        orderService = new OrderService(orderRepository, userRepository, emailService, preOrderService,
+                productRepository, ingredientRepository);
     }
 
     // ── Ikke-eksisterende ordre ──────────────────────────

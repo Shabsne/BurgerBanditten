@@ -2130,12 +2130,3 @@ input.success {
         flex: 1;
     }
 }
-
-.cart-item-removed {
-    display: block;
-    color: var(--error);
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1.3;
-    margin-top: 0.15rem;
-}

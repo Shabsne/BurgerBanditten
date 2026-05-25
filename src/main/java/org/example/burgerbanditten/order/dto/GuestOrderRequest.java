@@ -7,5 +7,5 @@ public record GuestOrderRequest(
         String phone,
         String comment,
         String pickupDateTime,
-        List<OrderItemRequest> items
+        List<OrderItemRequest> items  // ← bruger nu den fælles DTO
 ) {}
