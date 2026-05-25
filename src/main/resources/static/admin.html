@@ -24,7 +24,8 @@
     <button class="nav-tab active" onclick="showScreen('orders', this)">Ordrer</button>
     <button class="nav-tab" onclick="showScreen('catalog', this)">Katalog</button>
     <button class="nav-tab" onclick="showScreen('ingredients', this)">Ingredienser</button>
-    <button class="nav-tab" onclick="showScreen('hours', this)">Bestillingsvindue</button>
+    <button class="nav-tab" onclick="showScreen('statistics', this)">Statistik</button>
+    <button class="nav-tab" onclick="showScreen('hours', this)">Åbningstider</button>
   </nav>
 
   <div class="topbar-right">
@@ -77,6 +78,7 @@
       <button class="cat-filter active" onclick="filterCatalog('ALL', this)">Alle</button>
       <button class="cat-filter" onclick="filterCatalog('BURGER', this)">Burgere</button>
       <button class="cat-filter" onclick="filterCatalog('SIDE', this)">Sides</button>
+      <button class="cat-filter" onclick="filterCatalog('DIP', this)">Dips</button>
       <button class="cat-filter" onclick="filterCatalog('DRINK', this)">Drinks</button>
       <button class="cat-filter" onclick="filterCatalog('DESSERT', this)">Dessert</button>
     </div>
@@ -135,6 +137,45 @@
     <div id="ingredient-list">
       <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div></div>
     </div>
+  </div>
+</main>
+
+<main id="screen-statistics" class="admin-screen page-content">
+  <h2 class="page-heading">Statistik</h2>
+  <p class="page-subheading">Se samlet omsætning og hvilke produkter der sælger mest</p>
+
+  <div class="statistics-toolbar">
+    <label>
+      Fra
+      <input type="date" id="statistics-from">
+    </label>
+    <label>
+      Til
+      <input type="date" id="statistics-to">
+    </label>
+    <button class="btn-accept" type="button" onclick="loadSalesStatistics()">Filtrer</button>
+    <button class="btn-secondary" type="button" onclick="clearStatisticsFilter()">Ryd</button>
+  </div>
+
+  <div class="statistics-summary">
+    <span>Samlet omsætning</span>
+    <strong id="total-revenue">0,00 kr.</strong>
+  </div>
+
+  <div class="statistics-table-wrap">
+    <table class="statistics-table">
+      <thead>
+      <tr>
+        <th>Produkt</th>
+        <th>Antal solgt</th>
+      </tr>
+      </thead>
+      <tbody id="product-sales-body">
+      <tr>
+        <td colspan="2">Åbn statistik for at hente data</td>
+      </tr>
+      </tbody>
+    </table>
   </div>
 </main>
 
@@ -204,6 +245,7 @@
         <select id="p-category">
           <option value="BURGER">Burger</option>
           <option value="SIDE">Side</option>
+          <option value="DIP">Dip</option>
           <option value="DRINK">Drink</option>
           <option value="DESSERT">Dessert</option>
         </select>
