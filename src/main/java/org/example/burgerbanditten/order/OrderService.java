@@ -11,10 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -104,6 +102,42 @@ public class OrderService {
             result.add(orderItem);
         }
         return result;
+    }
+
+    private List<Ingredient> getSelectedIngredients(Product product, GuestOrderRequest.GuestOrderItem item) {
+        if (item.selectedIngredients() == null) {
+            return product.getIngredients() == null ? List.of() : product.getIngredients();
+        }
+        if (item.selectedIngredients().isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> selectedIngredientIds = item.selectedIngredients().stream()
+                .map(GuestOrderRequest.SelectedIngredient::id)
+                .toList();
+
+        return ingredientRepository.findAllById(selectedIngredientIds);
+    }
+
+    private double calculateCustomizedItemPrice(Product product, List<Ingredient> selectedIngredients, int quantity) {
+        List<Ingredient> defaultIngredients = product.getIngredients() == null
+                ? List.of()
+                : product.getIngredients();
+
+        double addedTotal = selectedIngredients.stream()
+                .filter(ingredient -> defaultIngredients.stream()
+                        .noneMatch(defaultIngredient -> defaultIngredient.getId().equals(ingredient.getId())))
+                .mapToDouble(Ingredient::getPrice)
+                .sum();
+
+        double removedTotal = defaultIngredients.stream()
+                .filter(defaultIngredient -> selectedIngredients.stream()
+                        .noneMatch(ingredient -> ingredient.getId().equals(defaultIngredient.getId())))
+                .mapToDouble(Ingredient::getPrice)
+                .sum();
+
+        double unitPrice = Math.max(0, product.getPrice() + addedTotal - removedTotal);
+        return unitPrice * quantity;
     }
 
     // ── Accept ordre ────────────────────────────────────────────────────
@@ -248,46 +282,29 @@ public class OrderService {
 
     // ── Salgsstatistik ─────────────────────────────────────────────────
     public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {
-        LocalDateTime fromDateTime = from == null ? null : from.atStartOfDay();
-        LocalDateTime toDateTime = to == null ? null : to.plusDays(1).atStartOfDay();
-
         List<Order> orders = orderRepository.findSalesOrders(
                 List.of(OrderStatus.ACCEPTED, OrderStatus.COMPLETED),
-                fromDateTime,
-                toDateTime
+                LocalDateTime.of(from.getYear(), from.getMonth(), from.getDayOfMonth(), 0, 0),
+                LocalDateTime.of(to.getYear(), to.getMonth(), to.getDayOfMonth() + 1, 0, 0)
         );
 
-        Map<Long, ProductSalesDto> productSales = new LinkedHashMap<>();
-        for (Product product : productRepository.findAll()) {
-            productSales.put(product.getId(), new ProductSalesDto(product.getId(), product.getName(), 0));
-        }
+        double totalRevenue = orders.stream()
+                .mapToDouble(Order::getPrice)
+                .sum();
 
-        double totalRevenue = 0;
-        for (Order order : orders) {
-            totalRevenue += order.getPrice();
+        var productSales = orders.stream()
+                .flatMap(order -> order.getOrderItems().stream())
+                .collect(Collectors.groupingBy(
+                        item -> item.getProduct().getName(),
+                        Collectors.summingInt(OrderItem::getQuantity)
+                ))
+                .entrySet().stream()
+                .map(entry -> new ProductSalesDto(null, entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparingInt(ProductSalesDto::quantitySold).reversed())
+                .limit(5)
+                .toList();
 
-            if (order.getOrderItems() == null) {
-                continue;
-            }
-
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = item.getProduct();
-                if (product == null) {
-                    continue;
-                }
-
-                ProductSalesDto current = productSales.getOrDefault(
-                        product.getId(),
-                        new ProductSalesDto(product.getId(), product.getName(), 0)
-                );
-                productSales.put(
-                        product.getId(),
-                        new ProductSalesDto(product.getId(), current.productName(), current.quantitySold() + item.getQuantity())
-                );
-            }
-        }
-
-        return new SalesStatisticsDto(List.copyOf(productSales.values()), totalRevenue);
+        return new SalesStatisticsDto(productSales, totalRevenue);
     }
 
     // Hent ordrer for den indloggede bruger
