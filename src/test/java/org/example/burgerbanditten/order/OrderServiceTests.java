@@ -23,7 +23,6 @@ class OrderServiceTests {
 
     private OrderRepository orderRepository;
     private ProductRepository productRepository;
-    private IngredientRepository ingredientRepository;
     private UserRepository userRepository;
     private OrderService orderService;
     private EmailService emailService;
