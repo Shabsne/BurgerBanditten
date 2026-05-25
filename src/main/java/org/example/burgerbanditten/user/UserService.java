@@ -104,4 +104,10 @@ public class UserService {
 
         emailService.sendPasswordReset(mail, resetLink);
     }
+
+    public User findByMail(String mail) {
+        return userRepository.findByMail(mail)
+                .orElseThrow(() -> new RuntimeException("Bruger ikke fundet: " + mail));
+    }
+
 }
