@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface    OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByOrderStatus(OrderStatus orderStatus);
 
@@ -22,4 +22,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
     );
+
+    @Query("""
+            select o from Order o
+            where o.user.id = :userId
+            order by o.createdAt desc
+            """)
+    List<Order> findOrdersByUserId(@Param("userId") Long userId);
 }

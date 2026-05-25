@@ -76,20 +76,32 @@ async function showProduct(id) {
 
 function showProductModal(product, allIngredients = []) {
     const productIngNames = product.ingredients || [];
-    const baseIngredientNames = new Set(productIngNames);
+    const isDrink = product.category === 'DRINK';
 
-    const ingChips = allIngredients.map(ing => `
-        <label class="ing-chip">
-            <input type="checkbox" name="product-ing"
-                   value="${ing.id}"
-                   data-name="${ing.name}"
-                   data-price="${ing.price ?? 0}"
-                   data-default="${baseIngredientNames.has(ing.name)}"
-                   onchange="updateProductModalPrice()"
-                   ${baseIngredientNames.has(ing.name) ? 'checked' : ''}>
-            <span>${ing.name}</span>
-            ${ing.price ? `<small>${formatIngredientPrice(ing, baseIngredientNames.has(ing.name))}</small>` : ''}
-        </label>`).join('');
+    // Faste ingredienser som read-only liste
+    const fixedIngList = productIngNames.length ? `
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Indeholder</label>
+            <p style="font-size:0.88rem; color:var(--muted); line-height:1.6;">${productIngNames.join(', ')}</p>
+        </div>` : '';
+
+    // Ekstra: kun addOn-ingredienser der ikke allerede er i produktet (ingen ekstra til drinks)
+    const extras = isDrink ? [] : allIngredients.filter(
+        ing => ing.addOn && !productIngNames.includes(ing.name)
+    );
+    const extrasSection = extras.length > 0 ? `
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Ekstra</label>
+            <div class="ingredients-grid">
+                ${extras.map(ing => `
+                    <label class="ing-chip">
+                        <input type="checkbox" name="extra-ing"
+                               value="${ing.id}" data-name="${ing.name}" data-price="${ing.price}"
+                               onchange="updateModalPrice(${product.price})">
+                        ${ing.name}${ing.price > 0 ? ` (+${ing.price} kr.)` : ''}
+                    </label>`).join('')}
+            </div>
+        </div>` : '';
 
     const modal = document.getElementById('modal');
     modal.querySelector('#modal-content').innerHTML = `
@@ -98,15 +110,9 @@ function showProductModal(product, allIngredients = []) {
         </div>
 
         <p class="product-modal-desc">${product.description ?? ''}</p>
-        <p class="product-modal-price">
-            <span id="product-modal-price" data-base-price="${product.price}">${product.price}</span> kr.
-        </p>
+        <p class="product-modal-price" id="modal-current-price">${product.price} kr.</p>
 
-        ${allIngredients.length > 0 ? `
-        <div class="form-group" style="margin-top:1rem;">
-            <label>Ingredienser</label>
-            <div class="ingredients-grid">${ingChips}</div>
-        </div>` : ''}
+        ${fixedIngList}
 
         <div class="form-group" style="margin-top:1rem;">
             <label for="product-comment">Kommentar</label>
@@ -114,12 +120,23 @@ function showProductModal(product, allIngredients = []) {
                       placeholder="Fx. ingen løg, ekstra dressing…" rows="2"></textarea>
         </div>
 
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="closeModal()">Tilbage</button>
-            <button class="btn-primary"
-                    onclick="addToCartFromModal(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price})">
-                + Tilføj
-            </button>
+        ${extrasSection}
+
+        <div class="modal-footer" style="flex-direction:column; gap:0.75rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem; justify-content:center;">
+                <button class="btn-secondary" style="width:36px;height:36px;padding:0;font-size:1.2rem;"
+                        onclick="changeModalQty(-1)">−</button>
+                <span id="modal-qty" style="min-width:28px; text-align:center; font-size:1.1rem; font-weight:600;">1</span>
+                <button class="btn-secondary" style="width:36px;height:36px;padding:0;font-size:1.2rem;"
+                        onclick="changeModalQty(1)">+</button>
+            </div>
+            <div style="display:flex; gap:0.5rem; width:100%;">
+                <button class="btn-secondary" style="flex:1;" onclick="closeModal()">Tilbage</button>
+                <button class="btn-primary" style="flex:2;"
+                        onclick="addToCartFromModal(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price})">
+                    + Tilføj
+                </button>
+            </div>
         </div>
     `;
     modal.classList.add('open');
@@ -177,12 +194,31 @@ function formatPrice(price) {
     return Number.isInteger(price) ? String(price) : price.toFixed(2);
 }
 
-function addToCartFromModal(id, name, price) {
-    const { selectedIngredients, addedIngredients, removedIngredients } = getModalIngredientState();
-    const customizedPrice = calculateCustomizedPrice(price);
+function updateModalPrice(basePrice) {
+    const extrasTotal = [...document.querySelectorAll('input[name="extra-ing"]:checked')]
+        .reduce((sum, cb) => sum + parseFloat(cb.dataset.price || 0), 0);
+    const el = document.getElementById('modal-current-price');
+    if (el) el.textContent = (basePrice + extrasTotal) + ' kr.';
+}
+
+function addToCartFromModal(id, name, basePrice) {
+    const qty = parseInt(document.getElementById('modal-qty')?.textContent) || 1;
+    const checkedExtras = [...document.querySelectorAll('input[name="extra-ing"]:checked')];
+    const selectedIngredients = checkedExtras.map(cb => ({ id: parseInt(cb.value), name: cb.dataset.name }));
+    const extrasTotal = checkedExtras.reduce((sum, cb) => sum + parseFloat(cb.dataset.price || 0), 0);
+    const finalPrice = basePrice + extrasTotal;
     const comment = (document.getElementById('product-comment')?.value || '').trim();
-    addToCart(id, name, customizedPrice, selectedIngredients, comment, addedIngredients, removedIngredients);
+    for (let i = 0; i < qty; i++) {
+        addToCart(id, name, finalPrice, selectedIngredients, comment);
+    }
     closeModal();
+}
+
+function changeModalQty(delta) {
+    const el = document.getElementById('modal-qty');
+    if (!el) return;
+    const current = parseInt(el.textContent) || 1;
+    el.textContent = Math.max(1, current + delta);
 }
 
 function closeModal() {
@@ -305,6 +341,7 @@ async function checkAdmin() {
         if (loggedIn) {
             document.getElementById('login-btn').classList.add('hidden');
             document.getElementById('logout-btn').classList.remove('hidden');
+            document.getElementById('history-btn').classList.remove('hidden'); // ← tilføj denne
         }
     } catch (e) { /* ignore */ }
 }
@@ -325,5 +362,21 @@ document.getElementById('update-modal').addEventListener('click', function(e) {
     if (e.target === this) closeUpdateModal();
 });
 
+async function checkOrderingStatus() {
+    try {
+        const res = await fetch('/api/orders/status', { credentials: 'include' });
+        const { open } = await res.json();
+        const statusEl = document.getElementById('menu-ordering-status');
+        const dotEl    = document.getElementById('menu-status-dot');
+        const textEl   = document.getElementById('menu-status-text');
+        if (statusEl) {
+            statusEl.style.display = '';
+            dotEl.className        = 'status-dot ' + (open ? 'open' : 'closed');
+            textEl.textContent     = open ? 'Åben' : 'Lukket';
+        }
+    } catch (e) {}
+}
+
 fetchProducts();
 checkAdmin();
+checkOrderingStatus();

@@ -163,7 +163,11 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
             body: JSON.stringify({
                 customerName:  nameInput.value.trim(),
                 phone:         phoneInput.value.trim(),
-                items:         cart,
+                items:         cart.map(item => ({
+                    productId:           item.productId,
+                    quantity:            item.quantity,
+                    selectedIngredients: (item.selectedIngredients || []).map(i => i.id)
+                })),
                 pickupDateTime // null hvis "Hurtigst mulig", ISO-streng hvis forudbestilling
             })
         });
@@ -176,7 +180,8 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
             alert(msg);
             window.location.href = '/menu.html';
         } else {
-            alert('Der skete en fejl. Prøv igen.');
+            const errorMsg = await res.text();
+            alert(errorMsg || 'Der skete en fejl. Prøv igen.');
         }
     } catch (err) {
         alert('Ingen forbindelse til serveren.');

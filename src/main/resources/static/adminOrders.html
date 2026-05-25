@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
   <!-- Link til ekstern CSS -->
   <link rel="stylesheet" href="css/burger.css">
- </head>
+</head>
 
 <body>
 
@@ -88,6 +88,19 @@
 
 <!-- TOAST CONTAINER -->
 <div id="toast-container"></div>
+
+<!-- REDIGER ORDRE MODAL -->
+<div id="edit-order-modal" class="modal-overlay" onclick="closeEditModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h2 class="modal-title">Rediger afhentingstidspunkt</h2>
+    <label class="modal-label" for="edit-pickup-input">Nyt afhentingstidspunkt</label>
+    <input type="datetime-local" id="edit-pickup-input" class="modal-input">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeEditModal()">Annuller</button>
+      <button class="btn-accept" onclick="savePickUpTime()">Gem ændringer</button>
+    </div>
+  </div>
+</div>
 
 <script src="/js/adminOrders.js"></script>
 </body>

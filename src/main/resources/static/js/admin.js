@@ -18,7 +18,7 @@ function showToast(msg, isError = false) {
 }
 
 function formatDT(iso) {
-    if (!iso) return '—';
+    if (!iso) return 'ASAP';
     return new Date(iso).toLocaleString('da-DK', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
@@ -36,9 +36,8 @@ function showScreen(id, btn) {
 // ── Opening status ───────────────────────────────
 async function checkOpeningStatus() {
     try {
-        const data = await api('/opening-hours/next').then(r => r.json());
-        document.getElementById('status-dot').className = 'status-dot ' + (data.openNow ? 'open' : 'closed');
-        document.getElementById('status-text').textContent = data.openNow ? 'Åben' : 'Lukket';
+        await api('/opening-hours/next').then(r => r.json());
+        // Status-dot styres udelukkende af bestillings-switchen via updateToggleBtn()
     } catch (e) {}
 }
 
@@ -69,6 +68,11 @@ function updateToggleBtn(isOpen) {
     btn.style.background = isOpen ? 'var(--success, #4CAF7D)' : 'var(--error, #FF5C5C)';
     btn.style.color      = 'white';
     btn.style.border     = 'none';
+
+    const dot  = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    if (dot)  dot.className    = 'status-dot ' + (isOpen ? 'open' : 'closed');
+    if (text) text.textContent = isOpen ? 'Åben' : 'Lukket';
 }
 
 // ── Order tabs ───────────────────────────────────
@@ -77,6 +81,8 @@ function switchOrderTab(tab) {
     document.querySelectorAll('.order-panel').forEach(p => p.classList.remove('visible'));
     document.getElementById('subtab-' + tab).classList.add('active');
     document.getElementById('panel-' + tab).classList.add('visible');
+
+    if (tab === 'history') loadAdminHistory('all');
 }
 
 // ── Build order card ─────────────────────────────
@@ -96,9 +102,9 @@ function buildOrderCard(order, isPending) {
     const footer = isPending
         ? `<button class="btn-accept" id="btn-${order.id}" onclick="acceptOrder(${order.id})">✓ Accepter</button>`
         : `<div style="display:flex; gap:0.5rem; align-items:center;">
-               <span class="accepted-pill">✓ Accepteret</span>
-               <button class="btn-sm" onclick="openEditOrderModal(${order.id})">✏️ Rediger</button>
-           </div>`;
+           <button class="btn-sm btn-success" onclick="completeOrder(${order.id})">✓ Fuldfør</button>
+           <button class="btn-sm" onclick="openEditOrderModal(${order.id})">✏️ Rediger</button>
+       </div>`;
 
     card.innerHTML = `
         <div class="card-header">
@@ -138,6 +144,34 @@ function renderOrderGrid(orders, gridId, isPending) {
         c.style.animationDelay = i * 0.04 + 's';
         grid.appendChild(c);
     });
+}
+
+async function completeOrder(orderId) {
+    if (!confirm(`Marker ordre #${orderId} som fuldført?`)) return;
+    try {
+        const res = await fetch(`/api/orders/${orderId}/complete`, {
+            method: 'PUT',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            // Fjern kortet fra aktive
+            document.getElementById('order-' + orderId)?.remove();
+
+            // Opdater badge-tæller
+            const badge = document.getElementById('active-count');
+            if (badge) {
+                const current = parseInt(badge.textContent) || 0;
+                badge.textContent = Math.max(0, current - 1);
+            }
+
+            showToast(`Ordre #${orderId} fuldført ✓`);
+        } else {
+            const msg = await res.text();
+            alert('Fejl: ' + msg);
+        }
+    } catch (e) {
+        alert('Netværksfejl');
+    }
 }
 
 async function loadPendingOrders() {
@@ -185,6 +219,29 @@ async function acceptOrder(orderId) {
     }
 }
 
+async function rejectOrder(orderId) {
+    if (!confirm(`Afvis ordre #${orderId}?`)) return;
+    const btn = document.getElementById('btn-reject-' + orderId);
+    if (btn) { btn.classList.add('loading'); btn.textContent = '...'; }
+    try {
+        const res = await api(`/api/orders/${orderId}/reject`, { method: 'PUT' });
+        if (!res.ok) throw new Error(await res.text());
+
+        const pendingBadge = document.getElementById('pending-count');
+        pendingBadge.textContent = Math.max(0, parseInt(pendingBadge.textContent) - 1);
+
+        const card = document.getElementById('order-' + orderId);
+        card.style.transition = 'opacity 0.3s, transform 0.3s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.96)';
+        setTimeout(() => card.remove(), 300);
+        showToast(`✕ Ordre #${orderId} afvist`);
+    } catch (e) {
+        showToast(e.message || 'Fejl ved afvisning', true);
+        if (btn) { btn.classList.remove('loading'); btn.textContent = '✕ Afvis'; }
+    }
+}
+
 // ── Rediger ordre modal ──────────────────────────
 let editingOrderId = null;
 
@@ -228,8 +285,44 @@ function closeEditOrderModal() {
     editingOrderId = null;
 }
 
-async function saveEditOrder() {
-    if (!editingOrderId) return;
+async function saveOrderChanges() {
+    const pickUpTimeRaw = document.getElementById('edit-pickup-time').value;
+    const comment       = document.getElementById('edit-comment').value.trim();
+
+    const items = [...document.querySelectorAll('.edit-item-row')].map(row => ({
+        productId: parseInt(row.dataset.productId),
+        quantity:  parseInt(row.querySelector('.edit-item-qty').value) || 1
+    }));
+
+    const body = {};
+    if (pickUpTimeRaw) body.pickUpTime = pickUpTimeRaw.length === 16 ? pickUpTimeRaw + ':00' : pickUpTimeRaw;
+    if (comment)       body.comment    = comment;
+    if (items.length)  body.items      = items;
+
+    try {
+        const res = await api(`/api/orders/${editingOrderId}/update`, {
+            method: 'PUT',
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        showToast('Ordre opdateret ✓');
+        closeEditOrderModal();
+        loadActiveOrders();
+    } catch (e) {
+        showToast(e.message || 'Kunne ikke gemme ændringer', true);
+    }
+}
+
+// ── Catalog ──────────────────────────────────────
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('da-DK', {
+        style: 'currency',
+        currency: 'DKK'
+    }).format(amount ?? 0);
+}
+
+function renderSalesStatistics(statistics) {
+    document.getElementById('total-revenue').textContent = formatCurrency(statistics.totalRevenue);
 
     const comment = document.getElementById('edit-comment').value.trim();
     const pickUpTime = document.getElementById('edit-pickup-time').value;
@@ -583,7 +676,13 @@ async function doLogout() {
     }
 }
 
-// ── Modal overlay close on backdrop click ────────
+function setHistoryFilter(filter) {
+    document.querySelectorAll('.history-filter-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('hf-' + filter).classList.add('active');
+    loadAdminHistory(filter);
+}
+
+// ── Modal overlays close on backdrop click ───────
 document.getElementById('product-modal-overlay').addEventListener('click', function (e) {
     if (e.target === this) closeProductModal();
 });

@@ -12,8 +12,15 @@
 
 <!-- Topbar -->
 <header class="topbar">
-    <div class="topbar-logo">Burger<span>Banditten</span></div>
+    <div class="topbar-left">
+        <div class="topbar-logo">Burger<span>Banditten</span></div>
+        <div class="admin-status" id="menu-ordering-status" style="display:none;">
+            <span class="status-dot closed" id="menu-status-dot"></span>
+            <span id="menu-status-text">Lukket</span>
+        </div>
+    </div>
     <div class="topbar-actions">
+        <button id="history-btn" class="btn-sm hidden" onclick="toggleCustomerOrders()">Mine ordrer</button>
         <a id="admin-link" href="/admin.html" class="btn-sm hidden">⚙ Admin</a>
         <button id="logout-btn" class="btn-sm hidden" onclick="doLogout()">Log ud</button>
         <a id="login-btn" href="/login.html" class="btn-sm">Log ind</a>
@@ -42,6 +49,23 @@
     <div class="modal-box" id="update-modal-content"></div>
 </div>
 
+<!-- Mine ordrer modal (kunde) -->
+<div class="modal-overlay" id="customer-orders-overlay"
+     onclick="if(event.target===this) document.getElementById('customer-orders-overlay').classList.remove('open')">
+    <div class="modal-box" style="max-width:500px;">
+        <div class="modal-header">
+            <div class="modal-title">Mine ordrer</div>
+            <button class="modal-close"
+                    onclick="document.getElementById('customer-orders-overlay').classList.remove('open')">
+                &times;
+            </button>
+        </div>
+        <div id="customer-orders-list"
+             style="max-height:400px; overflow-y:auto; margin-top:1rem; display:flex; flex-direction:column; gap:1rem;">
+        </div>
+    </div>
+</div>
+
 <!-- ══════════════════════════════════════════════
      HOVERING CART WIDGET (altid fixed bottom-right)
 ══════════════════════════════════════════════ -->
@@ -51,7 +75,6 @@
     <div id="cart-panel" class="cart-panel">
         <div class="cart-drawer-header">
             <div class="cart-drawer-title">Din <span>Kurv</span></div>
-            <!-- X kollapser til bar — fjerner ikke kurven -->
             <button class="cart-close-btn" onclick="collapseCart()" title="Minimer kurv">−</button>
         </div>
         <div id="cart-drawer-items" class="cart-drawer-items"></div>
@@ -75,6 +98,7 @@
 <div id="cart-toast" class="cart-toast">Tilføjet til kurven! 🍔</div>
 
 <script src="/js/cart.js"></script>
+<script src="/js/orderHistory.js"></script>
 <script src="/js/menu.js"></script>
 </body>
 </html>

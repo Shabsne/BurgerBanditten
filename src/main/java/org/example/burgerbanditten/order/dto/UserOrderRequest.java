@@ -2,10 +2,8 @@ package org.example.burgerbanditten.order.dto;
 
 import java.util.List;
 
-public record GuestOrderRequest(
-        String customerName,
-        String phone,
+public record UserOrderRequest(
         String comment,
-        String pickupDateTime,
+        String pickUpTime,
         List<OrderItemRequest> items
 ) {}

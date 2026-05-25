@@ -49,6 +49,9 @@
     <button class="sub-tab" id="subtab-active" onclick="switchOrderTab('active')">
       Aktive <span class="badge green" id="active-count">0</span>
     </button>
+    <button class="sub-tab" id="subtab-history" onclick="switchOrderTab('history')">
+      Historik
+    </button>
   </div>
 
   <div id="panel-pending" class="order-panel visible">
@@ -62,6 +65,22 @@
     <div class="orders-grid" id="active-grid">
       <div class="skeleton"><div class="skel-line wide"></div><div class="skel-line full"></div><div class="skel-line short"></div></div>
     </div>
+  </div>
+
+  <div class="order-panel" id="panel-history">
+
+    <!-- Filter-toolbar -->
+    <div class="history-toolbar">
+      <span class="history-filter-label">Vis:</span>
+      <button class="history-filter-btn active" id="hf-all"
+              onclick="setHistoryFilter('all')">Alle</button>
+      <button class="history-filter-btn" id="hf-completed"
+              onclick="setHistoryFilter('completed')">✓ Afhentet</button>
+      <button class="history-filter-btn" id="hf-rejected"
+              onclick="setHistoryFilter('rejected')">✕ Afvist</button>
+    </div>
+
+    <div class="orders-grid" id="history-grid"></div>
   </div>
 </main>
 
@@ -311,6 +330,8 @@
   </div>
 </div>
 
+<!-- orderHistory.js skal komme FØR admin.js -->
+<script src="/js/orderHistory.js"></script>
 <script src="/js/admin.js"></script>
 </body>
 </html>

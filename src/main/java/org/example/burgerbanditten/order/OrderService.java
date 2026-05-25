@@ -1,15 +1,12 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
-import org.example.burgerbanditten.ingredient.Ingredient;
-import org.example.burgerbanditten.ingredient.IngredientRepository;
-import org.example.burgerbanditten.order.dto.GuestOrderRequest;
-import org.example.burgerbanditten.order.dto.SalesStatisticsDto;
-import org.example.burgerbanditten.order.dto.ProductSalesDto;
-import org.example.burgerbanditten.order.dto.UpdateOrderRequest;
+import org.example.burgerbanditten.order.dto.*;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
+import org.example.burgerbanditten.user.User;
+import org.example.burgerbanditten.user.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,30 +21,24 @@ public class OrderService {
     private final EmailService emailService;
     private final PreOrderService preOrderService;
     private final ProductRepository productRepository;
-    private final IngredientRepository ingredientRepository;
+    private final UserRepository userRepository;
 
     public OrderService(OrderRepository orderRepository,
                         EmailService emailService,
                         PreOrderService preOrderService,
-                        ProductRepository productRepository,
-                        IngredientRepository ingredientRepository) {
+                        ProductRepository productRepository, UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.emailService    = emailService;
         this.preOrderService = preOrderService;
         this.productRepository = productRepository;
-        this.ingredientRepository = ingredientRepository;
+        this.userRepository = userRepository;
     }
 
-    // ── Gæsteordre ─────────────────────────────────────────────────────
-    // Opretter en rigtig Order i databasen med status PENDING,
-    // så den dukker op på admin-sidens "Ventende"-fane.
+    // ── Gæstebestilling ──────────────────────────────────────────────────────
     public Order createGuestOrder(GuestOrderRequest request) {
-
-        // Byg ordre
         Order order = new Order();
         order.setOrderStatus(OrderStatus.PENDING);
 
-        // Gem kundenavn og telefon i kommentarfeltet (User er null for gæster)
         String note = request.customerName();
         if (request.phone() != null && !request.phone().isBlank()) {
             note += " · Tlf: " + request.phone();
@@ -57,12 +48,48 @@ public class OrderService {
         }
         order.setComment(note);
 
-        // Gem ordren først for at få et ID (nødvendigt for FK på OrderItem)
+        if (request.pickupDateTime() != null && !request.pickupDateTime().isBlank()) {
+            order.setPickUpTime(LocalDateTime.parse(request.pickupDateTime()));
+        }
+
         Order savedOrder = orderRepository.save(order);
 
-        // Byg ordre-linjer
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (GuestOrderRequest.GuestOrderItem item : request.items()) {
+        List<OrderItem> orderItems = buildOrderItems(savedOrder, request.items()); // ← bruger hjælpemetode
+        savedOrder.setOrderItems(orderItems);
+        savedOrder.setPrice(orderItems.stream().mapToDouble(OrderItem::getPrice).sum());
+
+        return orderRepository.save(savedOrder);
+    }
+
+    // ── Brugerbestilling ─────────────────────────────────────────────────────
+    public Order createUserOrder(User user, UserOrderRequest request) {
+        if (request.items() == null || request.items().isEmpty()) {
+            throw new IllegalArgumentException("Kurven er tom");
+        }
+
+        Order order = new Order();
+        order.setOrderStatus(OrderStatus.PENDING);
+        order.setUser(user);
+        if (request.comment() != null && !request.comment().isBlank()) {
+            order.setComment(request.comment());
+        }
+        if (request.pickUpTime() != null && !request.pickUpTime().isBlank()) {
+            order.setPickUpTime(LocalDateTime.parse(request.pickUpTime()));
+        }
+
+        Order savedOrder = orderRepository.save(order);
+
+        List<OrderItem> orderItems = buildOrderItems(savedOrder, request.items()); // ← samme hjælpemetode
+        savedOrder.setOrderItems(orderItems);
+        savedOrder.setPrice(orderItems.stream().mapToDouble(OrderItem::getPrice).sum());
+
+        return orderRepository.save(savedOrder);
+    }
+
+    // ── Privat hjælpemetode – bruges af begge flows ──────────────────────────
+    private List<OrderItem> buildOrderItems(Order savedOrder, List<OrderItemRequest> items) {
+        List<OrderItem> result = new ArrayList<>();
+        for (OrderItemRequest item : items) {
             Product product = productRepository.findById(item.productId())
                     .orElseThrow(() -> new RuntimeException(
                             "Produkt ikke fundet: " + item.productId()));
@@ -71,21 +98,10 @@ public class OrderService {
             orderItem.setOrder(savedOrder);
             orderItem.setProduct(product);
             orderItem.setQuantity(item.quantity());
-            // Brug produktets aktuelle pris — ikke frontenden's (sikkerhed)
-            List<Ingredient> selectedIngredients = getSelectedIngredients(product, item);
-            orderItem.setSelectedIngredients(selectedIngredients);
-            orderItem.setPrice(calculateCustomizedItemPrice(product, selectedIngredients, item.quantity()));
-            orderItems.add(orderItem);
+            orderItem.setPrice(product.getPrice() * item.quantity()); // pris fra DB, ikke frontend
+            result.add(orderItem);
         }
-
-        // Sæt items og beregn total
-        savedOrder.setOrderItems(orderItems);
-        double total = orderItems.stream()
-                .mapToDouble(OrderItem::getPrice)
-                .sum();
-        savedOrder.setPrice(total);
-
-        return orderRepository.save(savedOrder);
+        return result;
     }
 
     private List<Ingredient> getSelectedIngredients(Product product, GuestOrderRequest.GuestOrderItem item) {
@@ -250,10 +266,15 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    // ── Fuldfør ordre ───────────────────────────────────────────────────
+    //fuldfør ordre
     public Order completeOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Ordre ikke fundet: " + orderId));
+
+        if (order.getOrderStatus() != OrderStatus.ACCEPTED) {
+            throw new IllegalStateException("Kun accepterede ordrer kan fuldføres.");
+        }
+
         order.setOrderStatus(OrderStatus.COMPLETED);
         return orderRepository.save(order);
     }
@@ -284,5 +305,23 @@ public class OrderService {
                 .toList();
 
         return new SalesStatisticsDto(productSales, totalRevenue);
+    }
+
+    // Hent ordrer for den indloggede bruger
+    public List<Order> getMyOrders(String email) {
+        User user = userRepository.findByMail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Bruger ikke fundet"));
+        return orderRepository.findOrdersByUserId(user.getId());
+    }
+
+    // Hent historik for admin (COMPLETED + rejected, med valgfrit filter)
+    public List<Order> getOrderHistory(String statusFilter) {
+        List<OrderStatus> statuses = switch (statusFilter == null ? "all" : statusFilter) {
+            case "completed" -> List.of(OrderStatus.COMPLETED);
+            case "rejected" -> List.of(OrderStatus.REJECTED);
+            default          -> List.of(OrderStatus.COMPLETED, OrderStatus.REJECTED);
+        };
+        // Genbrug den eksisterende findSalesOrders — ingen datofilter her
+        return orderRepository.findSalesOrders(statuses, null, null);
     }
 }
