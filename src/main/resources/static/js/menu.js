@@ -16,8 +16,9 @@ async function fetchProducts() {
 
 function renderMenu(products) {
     renderProducts(products.filter(p => p.category === 'BURGER'), 'burger-container');
-    renderProducts(products.filter(p => p.category === 'DRINK'),  'drink-container');
     renderProducts(products.filter(p => p.category === 'SIDE'),   'side-container');
+    renderProducts(products.filter(p => p.category === 'DIP'),    'dip-container');
+    renderProducts(products.filter(p => p.category === 'DRINK'),  'drink-container');
 }
 
 function renderProducts(products, containerId) {
