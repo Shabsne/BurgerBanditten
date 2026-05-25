@@ -7,10 +7,11 @@ import java.util.List;
 
 @Service
 public class IngredientService {
-
     private final IngredientRepository repository;
 
-    public IngredientService(IngredientRepository repository) {
+    public IngredientService(
+            IngredientRepository repository
+    ) {
         this.repository = repository;
     }
 

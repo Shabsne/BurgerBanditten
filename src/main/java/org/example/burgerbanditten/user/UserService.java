@@ -14,18 +14,22 @@ import java.util.UUID;
 
 @Service
 public class UserService {
+    private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    public UserService(
+            UserRepository userRepository,
+            EmailService emailService,
+            PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager
+    ) {
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+    }
 
     // ── Opret konto ─────────────────────────────────────
     public User registerUser(User user) {

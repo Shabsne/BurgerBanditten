@@ -9,15 +9,16 @@ import java.util.Optional;
 public class CartService {
 
     private final CartRepository cartRepository;
-    private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
+    private final ProductRepository productRepository;
 
     public CartService(CartRepository cartRepository,
-                       ProductRepository productRepository,
-                       CartItemRepository cartItemRepository) {
+                       CartItemRepository cartItemRepository,
+                       ProductRepository productRepository
+                       ) {
         this.cartRepository = cartRepository;
-        this.productRepository = productRepository;
         this.cartItemRepository = cartItemRepository;
+        this.productRepository = productRepository;
     }
 
     public Cart getCartByUserId(Long userId) {
