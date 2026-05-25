@@ -74,10 +74,10 @@ public final class DataInitializer implements CommandLineRunner {
                 List.of(cheese, pickles, onion, tomato, lettuce, mayo)));
 
         productRepository.save(new Product(null,
-                "Cheese Burger",
-                "Klassisk oksebøf med dobbelt cheddar og husets sauce",
-                85.0, false, Category.BURGER,
-                List.of(cheese, mayo, pickles)));
+                "Bombastik",
+                "Dobbelt oksebøf med dobbelt cheddar, pickles, løg, tomat, salat & husets mayo",
+                109.0, false, Category.BURGER,
+                List.of(cheese, pickles, onion, tomato, lettuce, mayo)));
 
         productRepository.save(new Product(null,
                 "Bandit Bacon",
