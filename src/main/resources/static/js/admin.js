@@ -18,7 +18,7 @@ function showToast(msg, isError = false) {
 }
 
 function formatDT(iso) {
-    if (!iso) return '—';
+    if (!iso) return 'ASAP';
     return new Date(iso).toLocaleString('da-DK', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
@@ -37,8 +37,9 @@ function showScreen(id, btn) {
 // ── Opening status ───────────────────────────────
 async function checkOpeningStatus() {
     try {
-        await api('/opening-hours/next').then(r => r.json());
-        // Status-dot styres udelukkende af bestillings-switchen via updateToggleBtn()
+        const data = await api('/opening-hours/next').then(r => r.json());
+        document.getElementById('status-dot').className = 'status-dot ' + (data.openNow ? 'open' : 'closed');
+        document.getElementById('status-text').textContent = data.openNow ? 'Åben' : 'Lukket';
     } catch (e) {}
 }
 
@@ -69,11 +70,6 @@ function updateToggleBtn(isOpen) {
     btn.style.background = isOpen ? 'var(--success, #4CAF7D)' : 'var(--error, #FF5C5C)';
     btn.style.color      = 'white';
     btn.style.border     = 'none';
-
-    const dot  = document.getElementById('status-dot');
-    const text = document.getElementById('status-text');
-    if (dot)  dot.className    = 'status-dot ' + (isOpen ? 'open' : 'closed');
-    if (text) text.textContent = isOpen ? 'Åben' : 'Lukket';
 }
 
 // ── Order tabs ───────────────────────────────────
