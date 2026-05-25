@@ -281,6 +281,34 @@ function closeEditOrderModal() {
     editingOrderId = null;
 }
 
+async function saveOrderChanges() {
+    const pickUpTimeRaw = document.getElementById('edit-pickup-time').value;
+    const comment       = document.getElementById('edit-comment').value.trim();
+
+    const items = [...document.querySelectorAll('.edit-item-row')].map(row => ({
+        productId: parseInt(row.dataset.productId),
+        quantity:  parseInt(row.querySelector('.edit-item-qty').value) || 1
+    }));
+
+    const body = {};
+    if (pickUpTimeRaw) body.pickUpTime = pickUpTimeRaw.length === 16 ? pickUpTimeRaw + ':00' : pickUpTimeRaw;
+    if (comment)       body.comment    = comment;
+    if (items.length)  body.items      = items;
+
+    try {
+        const res = await api(`/api/orders/${editingOrderId}/update`, {
+            method: 'PUT',
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        showToast('Ordre opdateret ✓');
+        closeEditOrderModal();
+        loadActiveOrders();
+    } catch (e) {
+        showToast(e.message || 'Kunne ikke gemme ændringer', true);
+    }
+}
+
 // ── Catalog ──────────────────────────────────────
 function formatCurrency(amount) {
     return new Intl.NumberFormat('da-DK', {

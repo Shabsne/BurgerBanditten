@@ -76,14 +76,32 @@ async function showProduct(id) {
 
 function showProductModal(product, allIngredients = []) {
     const productIngNames = product.ingredients || [];
+    const isDrink = product.category === 'DRINK';
 
-    const ingChips = allIngredients.map(ing => `
-        <label class="ing-chip">
-            <input type="checkbox" name="extra-ing"
-                   value="${ing.id}" data-name="${ing.name}"
-                   ${productIngNames.includes(ing.name) ? 'checked' : ''}>
-            ${ing.name}
-        </label>`).join('');
+    // Faste ingredienser som read-only liste
+    const fixedIngList = productIngNames.length ? `
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Indeholder</label>
+            <p style="font-size:0.88rem; color:var(--muted); line-height:1.6;">${productIngNames.join(', ')}</p>
+        </div>` : '';
+
+    // Ekstra: kun addOn-ingredienser der ikke allerede er i produktet (ingen ekstra til drinks)
+    const extras = isDrink ? [] : allIngredients.filter(
+        ing => ing.addOn && !productIngNames.includes(ing.name)
+    );
+    const extrasSection = extras.length > 0 ? `
+        <div class="form-group" style="margin-top:1rem;">
+            <label>Ekstra</label>
+            <div class="ingredients-grid">
+                ${extras.map(ing => `
+                    <label class="ing-chip">
+                        <input type="checkbox" name="extra-ing"
+                               value="${ing.id}" data-name="${ing.name}" data-price="${ing.price}"
+                               onchange="updateModalPrice(${product.price})">
+                        ${ing.name}${ing.price > 0 ? ` (+${ing.price} kr.)` : ''}
+                    </label>`).join('')}
+            </div>
+        </div>` : '';
 
     const modal = document.getElementById('modal');
     modal.querySelector('#modal-content').innerHTML = `
@@ -92,19 +110,17 @@ function showProductModal(product, allIngredients = []) {
         </div>
 
         <p class="product-modal-desc">${product.description ?? ''}</p>
-        <p class="product-modal-price">${product.price} kr.</p>
+        <p class="product-modal-price" id="modal-current-price">${product.price} kr.</p>
 
-        ${allIngredients.length > 0 ? `
-        <div class="form-group" style="margin-top:1rem;">
-            <label>Tilvalg / Ingredienser</label>
-            <div class="ingredients-grid">${ingChips}</div>
-        </div>` : ''}
+        ${fixedIngList}
 
         <div class="form-group" style="margin-top:1rem;">
             <label for="product-comment">Kommentar</label>
             <textarea id="product-comment" class="product-comment-input"
                       placeholder="Fx. ingen løg, ekstra dressing…" rows="2"></textarea>
         </div>
+
+        ${extrasSection}
 
         <div class="modal-footer" style="flex-direction:column; gap:0.75rem;">
             <div style="display:flex; align-items:center; gap:0.75rem; justify-content:center;">
@@ -126,13 +142,22 @@ function showProductModal(product, allIngredients = []) {
     modal.classList.add('open');
 }
 
-function addToCartFromModal(id, name, price) {
+function updateModalPrice(basePrice) {
+    const extrasTotal = [...document.querySelectorAll('input[name="extra-ing"]:checked')]
+        .reduce((sum, cb) => sum + parseFloat(cb.dataset.price || 0), 0);
+    const el = document.getElementById('modal-current-price');
+    if (el) el.textContent = (basePrice + extrasTotal) + ' kr.';
+}
+
+function addToCartFromModal(id, name, basePrice) {
     const qty = parseInt(document.getElementById('modal-qty')?.textContent) || 1;
-    const selectedIngredients = [...document.querySelectorAll('input[name="extra-ing"]:checked')]
-        .map(cb => ({ id: parseInt(cb.value), name: cb.dataset.name }));
+    const checkedExtras = [...document.querySelectorAll('input[name="extra-ing"]:checked')];
+    const selectedIngredients = checkedExtras.map(cb => ({ id: parseInt(cb.value), name: cb.dataset.name }));
+    const extrasTotal = checkedExtras.reduce((sum, cb) => sum + parseFloat(cb.dataset.price || 0), 0);
+    const finalPrice = basePrice + extrasTotal;
     const comment = (document.getElementById('product-comment')?.value || '').trim();
     for (let i = 0; i < qty; i++) {
-        addToCart(id, name, price, selectedIngredients, comment);
+        addToCart(id, name, finalPrice, selectedIngredients, comment);
     }
     closeModal();
 }
