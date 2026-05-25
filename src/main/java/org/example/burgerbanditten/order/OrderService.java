@@ -1,7 +1,6 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
-import org.example.burgerbanditten.ingredient.Ingredient;
 import org.example.burgerbanditten.ingredient.IngredientRepository;
 import org.example.burgerbanditten.order.dto.*;
 import org.example.burgerbanditten.preorder.PreOrderService;
@@ -22,7 +21,6 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
-    private final IngredientRepository ingredientRepository;
     private final EmailService emailService;
     private final PreOrderService preOrderService;
 
@@ -31,14 +29,12 @@ public class OrderService {
             OrderRepository orderRepository,
             UserRepository userRepository,
             ProductRepository productRepository,
-            IngredientRepository ingredientRepository,
             EmailService emailService,
             PreOrderService preOrderService
     ) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
-        this.ingredientRepository = ingredientRepository;
         this.emailService    = emailService;
         this.preOrderService = preOrderService;
     }

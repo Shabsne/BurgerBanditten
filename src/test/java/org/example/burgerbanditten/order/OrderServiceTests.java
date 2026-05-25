@@ -34,14 +34,12 @@ class OrderServiceTests {
         orderRepository = mock(OrderRepository.class);
         userRepository = mock(UserRepository.class);
         productRepository = mock(ProductRepository.class);
-        ingredientRepository = mock(IngredientRepository.class);
         emailService     = mock(EmailService.class);
         preOrderService = mock(PreOrderService.class);
         orderService = new OrderService(
                 orderRepository,
                 userRepository,
                 productRepository,
-                ingredientRepository,
                 emailService,
                 preOrderService
                 );
