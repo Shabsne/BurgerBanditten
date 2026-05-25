@@ -21,13 +21,13 @@ import static org.mockito.Mockito.*;
 
 class OrderServiceTests {
 
-    private OrderService orderService;
     private OrderRepository orderRepository;
     private ProductRepository productRepository;
-    private EmailService emailService;
-    private PreOrderService preOrderService;
     private IngredientRepository ingredientRepository;
     private UserRepository userRepository;
+    private OrderService orderService;
+    private EmailService emailService;
+    private PreOrderService preOrderService;
 
     @BeforeEach
     void setUp() {
