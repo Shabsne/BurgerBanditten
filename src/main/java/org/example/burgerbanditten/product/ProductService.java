@@ -15,9 +15,11 @@ public class ProductService {
     private final IngredientRepository ingredientRepository;
     private final ProductMapper mapper;
 
-    // RETTET: Den ødelagte linje "private final UpdateProduc" er fjernet herfra
-
-    public ProductService(ProductRepository repository, IngredientRepository ingredientRepository, ProductMapper mapper) {
+    public ProductService(
+            ProductRepository repository,
+            IngredientRepository ingredientRepository,
+            ProductMapper mapper
+    ) {
         this.repository = repository;
         this.ingredientRepository = ingredientRepository;
         this.mapper = mapper;

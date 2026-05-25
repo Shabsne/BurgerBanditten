@@ -9,11 +9,13 @@ import java.time.LocalDateTime;
 
 @Service
 public class PreOrderService {
-
     private final PickUpTimeRepository pickUpTimeRepository;
     private final OpeningHoursService openingHoursService;
 
-    public PreOrderService(PickUpTimeRepository pickUpTimeRepository, OpeningHoursService openingHoursService) {
+    public PreOrderService(
+            PickUpTimeRepository pickUpTimeRepository,
+            OpeningHoursService openingHoursService
+    ) {
         this.pickUpTimeRepository = pickUpTimeRepository;
         this.openingHoursService = openingHoursService;
     }

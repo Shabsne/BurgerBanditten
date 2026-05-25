@@ -1,8 +1,6 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
-import org.example.burgerbanditten.ingredient.Ingredient;
-import org.example.burgerbanditten.ingredient.IngredientRepository;
 import org.example.burgerbanditten.order.dto.*;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
@@ -21,23 +19,23 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
     private final EmailService emailService;
     private final PreOrderService preOrderService;
-    private final ProductRepository productRepository;
-    private final IngredientRepository ingredientRepository;
 
-    public OrderService(OrderRepository orderRepository,
-                        UserRepository userRepository,
-                        EmailService emailService,
-                        PreOrderService preOrderService,
-                        ProductRepository productRepository,
-                        IngredientRepository ingredientRepository) {
+
+    public OrderService(
+            OrderRepository orderRepository,
+            UserRepository userRepository,
+            ProductRepository productRepository,
+            EmailService emailService,
+            PreOrderService preOrderService
+    ) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
+        this.productRepository = productRepository;
         this.emailService    = emailService;
         this.preOrderService = preOrderService;
-        this.productRepository = productRepository;
-        this.ingredientRepository = ingredientRepository;
     }
 
     // ── Gæstebestilling ──────────────────────────────────────────────────────
@@ -252,6 +250,9 @@ public class OrderService {
 
     // ── Salgsstatistik ─────────────────────────────────────────────────
     public SalesStatisticsDto getSalesStatistics(LocalDate from, LocalDate to) {
+        LocalDateTime fromDateTime = from == null ? null : from.atStartOfDay();
+        LocalDateTime toDateTime = to == null ? null : to.plusDays(1).atStartOfDay();
+
         List<Order> orders = orderRepository.findSalesOrders(
                 List.of(OrderStatus.ACCEPTED, OrderStatus.COMPLETED),
                 LocalDateTime.of(from.getYear(), from.getMonth(), from.getDayOfMonth(), 0, 0),

@@ -1,7 +1,6 @@
 package org.example.burgerbanditten.order;
 
 import org.example.burgerbanditten.email.EmailService;
-import org.example.burgerbanditten.ingredient.IngredientRepository;
 import org.example.burgerbanditten.preorder.PreOrderService;
 import org.example.burgerbanditten.product.Product;
 import org.example.burgerbanditten.product.ProductRepository;
@@ -21,13 +20,12 @@ import static org.mockito.Mockito.*;
 
 class OrderServiceTests {
 
-    private OrderService orderService;
     private OrderRepository orderRepository;
     private ProductRepository productRepository;
+    private UserRepository userRepository;
+    private OrderService orderService;
     private EmailService emailService;
     private PreOrderService preOrderService;
-    private IngredientRepository ingredientRepository;
-    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
@@ -36,9 +34,13 @@ class OrderServiceTests {
         productRepository = mock(ProductRepository.class);
         emailService     = mock(EmailService.class);
         preOrderService = mock(PreOrderService.class);
-        ingredientRepository = mock(IngredientRepository.class);
-        orderService = new OrderService(orderRepository, userRepository, emailService, preOrderService,
-                productRepository, ingredientRepository);
+        orderService = new OrderService(
+                orderRepository,
+                userRepository,
+                productRepository,
+                emailService,
+                preOrderService
+                );
     }
 
     // ── Ikke-eksisterende ordre ──────────────────────────

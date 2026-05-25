@@ -1,7 +1,6 @@
 package org.example.burgerbanditten.user;
 
 import org.example.burgerbanditten.email.EmailService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,18 +13,22 @@ import java.util.UUID;
 
 @Service
 public class UserService {
+    private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    public UserService(
+            UserRepository userRepository,
+            EmailService emailService,
+            PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager
+    ) {
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+    }
 
     // ── Opret konto ─────────────────────────────────────
     public User registerUser(User user) {
